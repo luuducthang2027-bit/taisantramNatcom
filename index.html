@@ -165,9 +165,9 @@ header{top:52px}.srch input{width:160px}main{padding:10px}.g2,.g3{grid-template-
 <script>'use strict';
 /* ===== Tài sản trạm Natcom ===== */
 const VER='1.0.0';
-const DEFAULT_API='https://script.google.com/macros/s/AKfycbygcV5MsBdwX3gwoRN9csLZ09_Q9j0rlKtH4oIli6yl9FtmUZGQXuaGeF7mGQF6rWtV/exec';                 // link Apps Script /exec, điền khi đóng gói
+const DEFAULT_API='';                 // link Apps Script /exec, điền khi đóng gói
 const BRS=['ART','CEN','NOR','NOT','OUE01','OUE02','OUE03','SUD'];
-const ADMIN_HASH='3e26057677ad27f529657b363667199434e7e348fec67c363f6e9f21e231c814';
+const ADMIN_HASH='';
 const CFG0={rate:131,thr:5000,excl:['005812'],eq:[['300121','272583','040043','026329'],['300068','301524','268637']],emails:''};
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -447,8 +447,8 @@ function parsePlan(wb){let best=null;
   ['ok',`${prow.length} tủ/trạm có kế hoạch · ${items.filter(i=>i.dir==='x').length} mã xuất, ${items.filter(i=>i.dir==='w').length} mã thu hồi (cột có chữ "recall")`]];
  if(items.some(i=>i.ex))L.push(['info','Mã không tính % (chỉ báo đỏ): '+items.filter(i=>i.ex).map(i=>i.n||i.codes[0]).join(', ')]);
  if(miss.length)L.push(['warn',`${miss.length} mã tủ không có trong danh sách trạm: ${miss.slice(0,8).join(', ')}`]);
- L.push(['warn','Cần nhập số quyết định (DC) trước khi lưu']);
- return{data:{sheet:sn,items:items.map(({j,...o})=>o),rows:prow},lvl:'warn',L,needDC:true}}
+ L.push(['info','Đã xuất = phiếu có mã trạm/tủ + mã hàng trùng kế hoạch. Số QĐ (nếu nhập) dùng để đặt tên và xem trạm xuất ngoài kế hoạch.']);
+ return{data:{sheet:sn,items:items.map(({j,...o})=>o),rows:prow},lvl:miss.length?'warn':'ok',L}}
 
 /* ===== Tính toán ===== */
 const CMP={key:'',r:null};
@@ -496,6 +496,15 @@ function planProg(plan,L,dir){const N=plan.items.length;const items=plan.items.m
  let otherV=0;const other=new Map();for(const l of L){if(planCodes.has(l[2]))continue;otherV+=l[4];other.set(l[2],(other.get(l[2])||0)+l[4])}
  return{items,total,brs,sites,outside,otherV,other:[...other].sort((a,b)=>b[1]-a[1]).slice(0,10),n:P.size,
   done:sites.filter(s=>s.st==='Đủ').length,part:sites.filter(s=>s.st==='Thiếu').length,none:sites.filter(s=>s.st.startsWith('Chưa')).length}}
+/* kế hoạch: dòng phiếu có mã trạm/tủ + mã hàng trùng kế hoạch (không phụ thuộc số QĐ), tính từ ngày plan.from */
+async function planLines(plan){const sites=new Set(plan.rows.map(([c])=>{const z=res(c);return z?z.s:cl(c)}));const codes={x:new Set(),w:new Set()};
+ for(const it of plan.items)for(const c of it.codes.flatMap(eqc))codes[it.dir].add(c);const from=plan.from||'',out={x:[],w:[]};
+ for(const t of['x','w'])for(const ym of D.idx.months[t]){if(from&&ym<from.slice(0,7))continue;const doc=await loadMov(t,ym);if(!doc)continue;
+  for(const l of doc.l){if(from&&l[0]<from)continue;if(!codes[t].has(l[2]))continue;const z=res(l[1],l[7]);if(z&&sites.has(z.s))out[t].push(l)}}return{X:out.x,W:out.w}}
+async function planCalc(key){const p=await loadPlan(key);if(!p)return null;const{X,W}=await planLines(p);const dl=D.idx.dcs[key]&&(D.idx.dcs[key].xv||D.idx.dcs[key].wv)?await dcLines(key):{X:[],W:[]};
+ const PX=planProg(p,X,'x'),PW=p.items.some(i=>i.dir==='w')?planProg(p,W,'w'):null;
+ const ext=(P,L,t)=>{if(!P)return;if(L.length){const o=planProg(p,L,t);P.outside=o.outside;P.other=o.other;P.otherV=o.otherV}else{P.outside=[];P.other=[];P.otherV=0}};ext(PX,dl.X,'x');ext(PW,dl.W,'w');
+ return{p,X,W,DX:dl.X,DW:dl.W,PX,PW}}
 function dcActual(L){const byS=new Map(),byB=new Map(),byC=new Map(),byD=new Map();let v=0;
  for(const l of L){const z=res(l[1],l[7])||{s:l[1],b:'?'};v+=l[4];byS.set(z.s,{s:z.s,b:z.b,v:((byS.get(z.s)||{}).v||0)+l[4]});byB.set(z.b,(byB.get(z.b)||0)+l[4]);
   const c=byC.get(l[2])||{c:l[2],q:0,v:0};c.q+=l[3];c.v+=l[4];byC.set(l[2],c);byD.set(l[0],(byD.get(l[0])||0)+l[4])}
@@ -615,7 +624,7 @@ async function vDash(){const el=$('#p-dash');if(!D.idx.snaps.length){el.innerHTM
  /* tiến độ kế hoạch */
  const pl=$('#dashPlan');if(!D.idx.plans.length){pl.innerHTML='<h3>Kế hoạch theo quyết định</h3><div class="empty">Chưa có file kế hoạch. Nạp ở tab Nạp dữ liệu.</div>';return}
  let ph='<h3>Kế hoạch theo quyết định <small>% theo số lượng từng mã</small></h3>';
- for(const dc of D.idx.plans.slice(-4).reverse()){const p=await loadPlan(dc);if(!p)continue;const{X,W}=await dcLines(dc);const px=planProg(p,X,'x'),pw=p.items.some(i=>i.dir==='w')?planProg(p,W,'w'):null;
+ for(const dc of D.idx.plans.slice(-4).reverse()){const c=await planCalc(dc);if(!c)continue;const p=c.p,px=c.PX,pw=c.PW;
   ph+=`<div class="ring c" data-go="dc:${esc(dc)}" style="cursor:pointer;margin-bottom:8px">${ring(px.total,74)}<div><b>${esc(dc)}</b> <span class="mu">${esc(p.name||'')}</span><br><span class="mu">${px.n} trạm · ${px.done} đủ · ${px.part} thiếu · <span class="dn">${px.none} chưa xuất</span>${pw?` · thu hồi ${pw.total==null?'–':Math.round(pw.total)+'%'}`:''}</span></div></div>`}
  if($('#dashPlan'))$('#dashPlan').innerHTML=ph}
 /* ===== XU HƯỚNG ===== */
@@ -720,15 +729,15 @@ async function dcBody(){const el=$('#dcB');const dc=DCS.dc;
   el.innerHTML=`<div class="card"><h3>Tất cả quyết định <small>${rows.length} số · bấm để xem tiến độ</small></h3>${tbl('dcl',[{h:'Số quyết định',k:'k',l:1,f:x=>`<b>${esc(x.k)}</b>`},{h:'Phòng',k:'dept',l:1},{h:'Xuất ra trạm',k:'xv',f:x=>C(x.xv)},{h:'Số trạm xuất',k:'xn'},{h:'Thu hồi',k:'wv',f:x=>x.wv?C(x.wv):''},{h:'Số trạm thu',k:'wn',f:x=>x.wn||''},{h:'Từ ngày',k:'d0',f:x=>vnd(x.d0)},{h:'Đến ngày',k:'d1',f:x=>vnd(x.d1)},{h:'Kế hoạch',v:x=>x.pl?1:0,l:1,f:x=>x.pl?'<span class="tag acc">Có</span>':''}],rows,{click:x=>{DCS.dc=x.k;$('#dcQ').value=x.k;dcBody()},sk:2})}</div>`;return}
  ld('Đang tính quyết định…');const m=D.idx.dcs[dc],plan=D.idx.plans.includes(dc)?await loadPlan(dc):null;const{X,W}=await dcLines(dc);ld('');
  const hasW=plan?plan.items.some(i=>i.dir==='w'):false;
- const PX=plan?planProg(plan,X,'x'):null,PW=plan&&hasW?planProg(plan,W,'w'):null;
+ const PC=plan?await planCalc(dc):null,PX=PC?PC.PX:null,PW=PC?PC.PW:null;
  const tg=(p,L)=>p?`<span class="tag ${p.total>=99.9?'ok':p.total>=50?'acc':'err'}">${p.total==null?'–':Math.round(p.total)+'%'}</span>`:L.length?`<span class="tag info">${C(dcActual(L).v)}</span>`:'<span class="tag info">0</span>';
- let h=`<div class="card"><h3 style="font-size:16px">${esc(dc)} <small>${esc(m.dept||'')}${plan?' · '+esc(plan.name||''):''} · ${m.d0?vnd(m.d0)+' → '+vnd(m.d1):'chưa có phiếu'}</small><span class="r"><button class="btn s" type="button" id="dcX">Xuất Excel quyết định</button><button class="btn s" type="button" id="dcC">Danh sách DC</button></span></h3>
+ let h=`<div class="card"><h3 style="font-size:16px">${esc(dc)} <small>${esc(m.dept||'')}${plan?' · '+esc(plan.name||''):''} · ${m.d0?vnd(m.d0)+' → '+vnd(m.d1):'chưa có phiếu'}</small><span class="r">${plan?`<button class="btn s p" type="button" id="dcU">Tải kế hoạch đã cập nhật</button>`:''}<button class="btn s" type="button" id="dcX">Xuất Excel quyết định</button><button class="btn s" type="button" id="dcC">Danh sách DC</button></span></h3>
  <div class="sub"><button type="button" data-t="x" class="${DCS.t==='x'?'on':''}">Xuất ra trạm ${tg(PX,X)}</button><button type="button" data-t="w" class="${DCS.t==='w'?'on':''}">Thu hồi ${tg(PW,W)}</button></div><div id="dcT"></div></div>`;
- el.innerHTML=h;$$('#dcB .sub button').forEach(b=>b.onclick=()=>{DCS.t=b.dataset.t;dcBody()});$('#dcC').onclick=()=>{DCS.dc='';$('#dcQ').value='';dcBody()};$('#dcX').onclick=()=>xlsDC(dc,plan,X,W);
+ el.innerHTML=h;$$('#dcB .sub button').forEach(b=>b.onclick=()=>{DCS.t=b.dataset.t;dcBody()});$('#dcC').onclick=()=>{DCS.dc='';$('#dcQ').value='';dcBody()};$('#dcX').onclick=()=>xlsDC(dc,plan,X,W,PC);if($('#dcU'))$('#dcU').onclick=()=>xlsPlanUpd(dc);
  const t=DCS.t,L=t==='x'?X:W,PP=t==='x'?PX:PW,verb=t==='x'?'xuất':'thu hồi';const box=$('#dcT');
  if(PP){const its=PP.items,bm=PP.brs;
   box.innerHTML=`<div class="g3"><div class="card"><h3>Tổng quyết định</h3><div class="ring">${ring(PP.total,112)}<div class="k" style="flex:1;grid-template-columns:repeat(2,minmax(0,1fr));margin:0">${kpi('Trạm kế hoạch',PP.n)}${kpi('Đủ',PP.done,'','g')}${kpi('Thiếu',PP.part,'','o')}${kpi('Chưa '+verb,PP.none,'','w')}</div></div>
-   <p class="mu" style="margin:8px 0 0">% = trung bình % các mã. Mỗi trạm, mỗi mã tối đa 100%; ${verb} vượt kế hoạch bôi đỏ, không cộng thêm.${PP.outside.length?` <b class="dn">${PP.outside.length} trạm ${verb} ngoài kế hoạch.</b>`:''}</p></div>
+   <p class="mu" style="margin:8px 0 0">Đã ${verb} = mọi phiếu ${verb} có mã trạm/tủ và mã hàng trùng kế hoạch${plan.from?' từ '+vnd(plan.from):''} (${(t==='x'?PC.X:PC.W).length.toLocaleString('vi-VN')} dòng), không cần ghi số QĐ. % = trung bình % các mã. Mỗi trạm, mỗi mã tối đa 100%; ${verb} vượt kế hoạch bôi đỏ, không cộng thêm.${PP.outside.length?` <b class="dn">${PP.outside.length} trạm ${verb} theo QĐ này nhưng ngoài kế hoạch.</b>`:''}</p></div>
   <div class="card"><h3>Từng mặt hàng</h3>${its.map(it=>hbar(it.n||it.codes[0],it.pct||0,it.ex?'<span class="red">không tính</span>':it.pct==null?'–':nf0.format(it.pct)+'%',`${nf0.format(it.cap)}/${nf0.format(it.pq)}`,{cls:it.ex?'r':'a',tipT:`${it.codes.join(', ')} · KH ${nf0.format(it.pq)} · đã ${verb} ${nf0.format(it.act)}${it.over?' · thừa '+nf0.format(it.over):''}`})+(it.over?`<div class="red" style="font-size:11px;margin:-2px 0 4px 100px">${verb[0].toUpperCase()+verb.slice(1)} thừa ${nf0.format(it.over)}</div>`:'')).join('')}</div>
   <div class="card"><h3>Từng chi nhánh <small>bấm để lọc trạm</small></h3>${bm.map(b=>`<div class="hb c" data-bf="${esc(b.b)}"><b>${esc(b.b)}</b><div class="tr"><i class="a" style="width:${Math.max(.5,b.pct||0)}%"></i></div><span>${b.pct==null?'–':nf0.format(b.pct)+'%'}</span><span>${b.n} trạm</span></div>`).join('')}</div></div><div class="gap"></div>
   <div class="card"><h3>Từng trạm <small id="dcF"></small><span class="r"><select id="dcSt"><option value="">Mọi trạng thái</option><option>Đủ</option><option>Thiếu</option><option>Chưa ${verb}</option><option value="over">Có ${verb} thừa</option></select></span></h3><div id="dcTT"></div></div>
@@ -747,11 +756,42 @@ async function dcBody(){const el=$('#dcB');const dc=DCS.dc;
   <div class="card"><h3>Theo mã hàng</h3>${tbl('dia',[{h:'Mã',k:'c',l:1},{h:'Tên hàng',l:1,v:x=>(D.names[x.c]||[''])[0],f:x=>esc(((D.names[x.c]||[''])[0]).slice(0,46))},{h:'SL',k:'q',f:x=>Q(x.q)},{h:'Giá trị',k:'v',f:x=>C(x.v)}],a.items,{h:380})}</div></div>`}
  flushFigs()}
 /* ===== KẾ HOẠCH ===== */
+function normDC(v){v=String(v||'').trim();if(!v)return'';const d=dcOf(v)[0];if(d&&!d.startsWith('PO'))return d;const m=/(\d{5,7})/.exec(v);if(m){const k=Object.keys(D.idx.dcs).find(k=>k.endsWith('_'+m[1]));if(k)return k;const y=/(20\d{2})/.exec(v);return(y?y[1]:new Date().getFullYear())+'_'+m[1]}return v.toUpperCase()}
 async function vPlan(){const el=$('#p-plan');if(!D.idx.plans.length){el.innerHTML=emptyState('Chưa có file kế hoạch','Nạp file kế hoạch (ví dụ Annex …phase_3…xlsx) ở tab Nạp dữ liệu. Tool tự tìm cột mã tủ và dòng mã hàng; cột có chữ "recall" là kế hoạch thu hồi.','<button class="btn p" type="button" data-go="tab:imp">Nạp dữ liệu</button>');return}
- ld('Đang tính kế hoạch…');const rows=[];for(const dc of D.idx.plans){const p=await loadPlan(dc);if(!p)continue;const{X,W}=await dcLines(dc);const px=planProg(p,X,'x'),pw=p.items.some(i=>i.dir==='w')?planProg(p,W,'w'):null;
-  rows.push({dc,name:p.name,n:px.n,px:px.total,pw:pw?pw.total:null,done:px.done,part:px.part,none:px.none,out:px.outside.length,upd:p.upd,ni:p.items.length})}ld('');
- el.innerHTML=`<div class="g3">${rows.map(r=>`<div class="card" style="cursor:pointer" data-go="dc:${esc(r.dc)}"><h3>${esc(r.dc)}<small>${esc(r.name||'')}</small></h3><div class="ring">${ring(r.px,96)}<div><div class="mu">Xuất ra trạm</div><b>${r.n} trạm</b> · ${r.done} đủ · ${r.part} thiếu · <span class="dn">${r.none} chưa</span><div class="mu" style="margin-top:4px">Thu hồi: ${r.pw==null?'không có kế hoạch recall':'<b>'+Math.round(r.pw)+'%</b>'}${r.out?` · <span class="dn">${r.out} trạm ngoài KH</span>`:''}</div></div></div></div>`).join('')}</div><div class="gap"></div>
- <div class="card"><h3>Danh sách kế hoạch</h3>${tbl('pl',[{h:'Số quyết định',k:'dc',l:1},{h:'File',k:'name',l:1},{h:'Số trạm',k:'n'},{h:'Số mã',k:'ni'},{h:'% xuất',k:'px',f:x=>x.px==null?'–':nf0.format(x.px)+'%'},{h:'% thu hồi',k:'pw',f:x=>x.pw==null?'–':nf0.format(x.pw)+'%'},{h:'Ngoài KH',k:'out'},{h:'Ngày nạp',k:'upd',f:x=>x.upd?new Date(x.upd).toLocaleDateString('vi-VN'):''}],rows,{click:x=>GO('dc:'+x.dc)})}</div>`}
+ ld('Đang tính kế hoạch…');const rows=[];for(const dc of D.idx.plans){const c=await planCalc(dc);if(!c)continue;const p=c.p,X=c.X,W=c.W,px=c.PX,pw=c.PW;
+  const r={dc,name:p.name,n:px.n,px:px.total,pw:pw?pw.total:null,done:px.done,part:px.part,none:px.none,out:px.outside.length,upd:p.upd,ni:p.items.length,nx:X.length,nw:W.length,from:p.from||''};
+  if(!X.length&&!W.length)r.sug=(await planSugg(p)).filter(s=>s[0]!==dc).slice(0,4);rows.push(r)}ld('');
+ const xMax=[...D.idx.cov.x].map(c=>c[1]).sort().slice(-1)[0];
+ el.innerHTML=`<div class="al info"><b class="t">Cách tool tính:</b> dòng phiếu xuất (Export Summary) nào có <b>mã tủ/mã trạm</b> và <b>mã hàng</b> (kể cả mã tương đương) trùng với kế hoạch thì tính là đã xuất theo kế hoạch, không cần ghi số QĐ; chỉ tính phiếu từ ngày lập kế hoạch trở đi. Thu hồi tính tương tự với các mã recall. Phiếu xuất hiện có đến ngày ${xMax?vnd(xMax):'–'}.</div>
+ <div class="g3">${rows.map(r=>`<div class="card"><h3><a href="#" data-go="dc:${esc(r.dc)}">${esc(r.dc)}</a><small>${esc(r.name||'')}</small>${S.admin?`<span class="r"><button class="btn s" type="button" data-rdc="${esc(r.dc)}">Đổi số QĐ</button><button class="btn s" type="button" data-cls="${esc(r.dc)}">Sửa kế hoạch</button></span>`:''}</h3>
+  ${r.nx||r.nw?`<div class="ring" style="cursor:pointer" data-go="dc:${esc(r.dc)}">${ring(r.px,96)}<div><div class="mu">Xuất ra trạm · ${r.nx.toLocaleString('vi-VN')} dòng phiếu khớp${r.from?' · từ '+vnd(r.from):''}</div><b>${r.n} trạm</b> · ${r.done} đủ · ${r.part} thiếu · <span class="dn">${r.none} chưa</span><div class="mu" style="margin-top:4px">Thu hồi: ${r.pw==null?'không có kế hoạch recall':'<b>'+Math.round(r.pw)+'%</b> · '+r.nw+' dòng phiếu'}${r.out?` · <span class="dn">${r.out} trạm ngoài KH</span>`:''}</div></div></div>`
+  :`<div class="al err" style="margin:0"><b class="t">Chưa có phiếu xuất nào trùng mã trạm + mã hàng của kế hoạch${r.from?' từ '+vnd(r.from):''}</b><br>Kiểm tra ngày bắt đầu tính (nút Sửa kế hoạch), hoặc nạp file Export Summary của giai đoạn thực hiện.${r.sug&&r.sug.length?`<br>Số QĐ trong file xuất có nhiều trạm trùng kế hoạch nhất: ${r.sug.map(s=>`<b>${esc(s[0])}</b> (${s[1]} trạm)`).join(', ')}${S.admin?' → bấm "Đổi số QĐ".':''}`:''}</div>`}
+  <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap"><button class="btn s p" type="button" data-upd="${esc(r.dc)}">Tải kế hoạch đã cập nhật số xuất</button><button class="btn s" type="button" data-go="dc:${esc(r.dc)}">Xem chi tiết</button></div></div>`).join('')}</div><div class="gap"></div>
+ <div class="card"><h3>Danh sách kế hoạch</h3>${tbl('pl',[{h:'Số quyết định',k:'dc',l:1},{h:'File',k:'name',l:1},{h:'Số trạm',k:'n'},{h:'Số mã',k:'ni'},{h:'Dòng phiếu khớp',k:'nx'},{h:'% xuất',k:'px',f:x=>x.px==null?'–':nf0.format(x.px)+'%'},{h:'% thu hồi',k:'pw',f:x=>x.pw==null?'–':nf0.format(x.pw)+'%'},{h:'Ngoài KH',k:'out'},{h:'Ngày nạp',k:'upd',f:x=>x.upd?new Date(x.upd).toLocaleDateString('vi-VN'):''}],rows,{click:x=>GO('dc:'+x.dc)})}</div>`;
+ $$('[data-upd]').forEach(b=>b.onclick=()=>xlsPlanUpd(b.dataset.upd));
+ $$('[data-rdc]').forEach(b=>b.onclick=()=>renameDC(b.dataset.rdc));$$('[data-cls]').forEach(b=>b.onclick=()=>editCls(b.dataset.cls))}
+async function editCls(dc){const p=await loadPlan(dc);openMd(`<h3>Sửa kế hoạch – ${esc(dc)}</h3><div class="fm" style="margin-bottom:10px"><label>Tính phiếu xuất/thu hồi từ ngày (để trống = mọi ngày)<input type="date" id="pfrom" value="${esc(p.from||'')}"></label></div><div class="tw" style="max-height:55vh"><table><thead><tr><th class="l">Tên hàng</th><th class="l">Mã</th><th class="l">Loại</th><th class="l">Tính %</th></tr></thead><tbody>${p.items.map((x,j)=>`<tr><td class="l">${esc(x.n)}</td><td class="l">${esc(x.codes.join(', '))}</td><td class="l"><select data-cd="${j}"><option value="x" ${x.dir==='x'?'selected':''}>Xuất</option><option value="w" ${x.dir==='w'?'selected':''}>Thu hồi</option></select></td><td class="l"><input type="checkbox" data-ce="${j}" ${x.ex?'':'checked'}></td></tr>`).join('')}</tbody></table></div><div class="act"><button class="btn" type="button" onclick="closeMd()">Hủy</button><button class="btn p" type="button" id="clsOk">Lưu</button></div>`);
+ $('#clsOk').onclick=async()=>{p.from=$('#pfrom').value||'';$$('[data-cd]').forEach(x=>p.items[+x.dataset.cd].dir=x.value);$$('[data-ce]').forEach(x=>p.items[+x.dataset.ce].ex=!x.checked);p.upd=Date.now();ld('Đang lưu…');await ST.set('plan:'+dc,p);D.plans[dc]=p;ld('');closeMd();toast('Đã lưu phân loại');show(S.tab)}}
+function renameDC(old){openMd(`<h3>Đổi số quyết định cho kế hoạch</h3><div class="fm"><label>Số QĐ hiện tại<input type="text" value="${esc(old)}" disabled></label><label>Số QĐ đúng (có thể gõ 392823 hoặc 2026_392823/AP-DAO_DEPT)<input type="text" id="ndc" list="dcl"></label><datalist id="dcl">${Object.keys(D.idx.dcs).map(k=>`<option value="${esc(k)}">`).join('')}</datalist><div class="dn" id="ndcE"></div></div><div class="act"><button class="btn" type="button" onclick="closeMd()">Hủy</button><button class="btn p" type="button" id="ndcOk">Lưu</button></div>`);
+ $('#ndcOk').onclick=async()=>{const nd=normDC($('#ndc').value);if(!nd){$('#ndcE').textContent='Nhập số quyết định';return}if(nd===old){closeMd();return}
+  ld('Đang lưu…');const p=await loadPlan(old);p.dc=nd;p.upd=Date.now();await ST.set('plan:'+nd,p);D.plans[nd]=p;await ST.del('plan:'+old);delete D.plans[old];
+  D.idx.plans=D.idx.plans.filter(x=>x!==old);if(!D.idx.plans.includes(nd))D.idx.plans.push(nd);await rebuildDC();D.idx.upd=Date.now();await ST.set('idx',D.idx);ld('');closeMd();toast('Đã đổi sang '+nd);show('plan')}}
+/* tải file kế hoạch đã điền số đã xuất / đã thu hồi */
+async function xlsPlanUpd(dc){ld('Đang tạo file…');try{const c=await planCalc(dc);const p=c.p,X=c.X,W=c.W,PX=c.PX,PW=c.PW;const wb=XLSX.utils.book_new();
+const by=new Map();for(const s of PX.sites)by.set(s.s,{x:s});if(PW)for(const s of PW.sites){const o=by.get(s.s)||{};o.w=s;by.set(s.s,o)}
+ const its=p.items.map((it,i)=>({...it,i}));
+ const head=['Mã tủ','Trạm','Chi nhánh','% xuất','Trạng thái xuất'].concat(PW?['% thu hồi','Trạng thái thu hồi']:[]).concat(its.flatMap(it=>{const n=(it.n||it.codes[0]).replace(/^#\s*/,'');const v=it.dir==='w'?'thu':'xuất';return[n+' – KH',n+' – đã '+v,n+' – còn thiếu']}));
+ const sum=['','TỔNG','','','',...(PW?['','']:[])];const tot=its.map(()=>[0,0,0]);
+ const body=[...by.values()].map(({x,w})=>{const s=x||w;const row=[s.cab,s.s,s.b,x&&x.pct!=null?Math.round(x.pct*10)/10:'',x?x.st:''].concat(PW?[w&&w.pct!=null?Math.round(w.pct*10)/10:'',w?w.st:'']:[]);
+  its.forEach((it,k)=>{const src=it.dir==='w'?w:x;const q=src?src.q[it.i]:0,a=src?src.a[it.i]:0;tot[k][0]+=q;tot[k][1]+=a;tot[k][2]+=Math.max(0,q-a);row.push(q,a,Math.max(0,q-a))});return row});
+ tot.forEach(t=>sum.push(t[0],t[1],t[2]));
+ const ws=XLSX.utils.aoa_to_sheet([['KẾ HOẠCH '+dc+' – ĐÃ CẬP NHẬT SỐ XUẤT/THU HỒI TỪ PHIẾU ('+new Date().toLocaleDateString('vi-VN')+')'],['Nguồn: '+(p.name||'')+' · Đã xuất = phiếu có mã trạm/tủ + mã hàng trùng kế hoạch'+(p.from?' từ '+vnd(p.from):'')+' · % tối đa 100% mỗi mã; đã xuất lớn hơn KH là xuất thừa'],head,...body,sum]);
+ ws['!cols']=[{wch:10},{wch:10},{wch:9},{wch:8},{wch:12}].concat(PW?[{wch:9},{wch:12}]:[]).concat(its.flatMap(()=>[{wch:12},{wch:12},{wch:12}]));
+ XLSX.utils.book_append_sheet(wb,ws,'Ke hoach cap nhat');
+ const out=[['Trạm xuất theo QĐ nhưng ngoài kế hoạch','CN','Giá trị ('+uName()+')']].concat(PX.outside.map(o=>[o.s,o.b,xv(o.v)]));XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(out),'Ngoai ke hoach');
+ const det=[['Ngày','Mã trạm/tủ trong phiếu','Trạm','CN','Mã hàng','Tên hàng','SL','Giá trị ('+uName()+')','Kho','Loại']].concat([...X.map(l=>['Xuất',l]),...W.map(l=>['Thu hồi',l])].map(([t,l])=>{const z=res(l[1],l[7])||{s:'',b:''};return[vnd(l[0]),l[1],z.s,z.b,l[2],(D.names[l[2]]||[''])[0],l[3],xv(l[4]),l[5],t]}));
+ XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(det),'Phieu khop ke hoach');
+ XLSX.writeFile(wb,'KeHoach_'+dc.replace(/[\/\\]/g,'-')+'_cap_nhat.xlsx')}catch(e){console.error(e);toast('Lỗi: '+e.message,5000)}finally{ld('')}}
 /* ===== THỪA TÀI SẢN ===== */
 async function vNorm(){const el=$('#p-norm');if(!D.norm){el.innerHTML=emptyState('Chưa có file định mức','Tab này so số lượng từng mã hàng tại trạm với định mức (ví dụ 1 tủ BBU có 3 RRU, 3 anten…). File định mức cần các cột: <b>Loại trạm</b> (theo Radio Config trong Danh sách trạm, ví dụ 2G+4G; hoặc <b>Mã trạm</b> cho định mức riêng), <b>Mã hàng</b>, <b>Định mức</b>, có thể thêm Tên hàng.','<button class="btn p" type="button" data-go="tab:imp">Nạp file định mức</button>');return}
  const sb=await loadSnap(S.B);const L=normCheck(sb)||[];const tv=L.reduce((a,x)=>a+x.v,0),ns=new Set(L.map(x=>x.s));const byC=new Map();for(const x of L){const o=byC.get(x.c)||{c:x.c,n:x.n||(D.names[x.c]||[''])[0],v:0,ex:0};o.v+=x.v;o.ex+=x.ex;byC.set(x.c,o)}const tc=[...byC.values()].sort((a,b)=>b.v-a.v).slice(0,10),m=Math.max(...tc.map(x=>x.v),1);
@@ -798,11 +838,11 @@ const IMP={items:[],busy:false,master:null,
    ${it.L.length?`<ul>${it.L.map(([l,t])=>`<li class="${l}">${t}</li>`).join('')}</ul>`:''}${it.t==='plan'&&it.r&&it.r.data&&!it.saved?planForm(it,i):''}</div>`).join('');
   const can=its.some(i=>i.st==='done'&&i.lvl!=='err'&&!i.saved);$('#impSave').disabled=!can||this.busy;$('#impSave').textContent=S.admin?'Lưu vào dữ liệu':'Đăng nhập admin để lưu';
   $$('[data-rm]').forEach(b=>b.onclick=()=>{its.splice(+b.dataset.rm,1);if(!its.length)buildR(D.master);this.render()});
-  $$('[data-pdc]').forEach(x=>x.oninput=()=>{const it=its[+x.dataset.pdc];it.dc=x.value.trim();it.L=it.L.filter(l=>!/^Cần nhập/.test(l[1]));if(!it.dc)it.L.push(['warn','Cần nhập số quyết định (DC) trước khi lưu'])});
+  $$('[data-pdc]').forEach(x=>x.oninput=()=>{its[+x.dataset.pdc].dc=x.value.trim()});
   $$('[data-pdir]').forEach(x=>x.onchange=()=>{const[i,j]=x.dataset.pdir.split(':');its[+i].r.data.items[+j].dir=x.value});
   $$('[data-pex]').forEach(x=>x.onchange=()=>{const[i,j]=x.dataset.pex.split(':');its[+i].r.data.items[+j].ex=!x.checked});
   $$('[data-psg]').forEach(x=>x.onclick=()=>{const[i,v]=[+x.dataset.psg,x.dataset.v];its[i].dc=v;const inp=$(`[data-pdc="${i}"]`);inp.value=v;inp.dispatchEvent(new Event('input'))})}};
-function planForm(it,i){const d=it.r.data;return`<div style="padding:4px 12px 12px"><div class="fm" style="grid-template-columns:minmax(0,320px) 1fr;align-items:end"><label>Số quyết định (DC) cho kế hoạch này<input type="text" data-pdc="${i}" value="${esc(it.dc||'')}" placeholder="ví dụ 2026_392823"></label><div class="mu">Gợi ý theo số trạm trùng: ${(it.sug||[]).map(s=>`<span class="chip" data-psg="${i}" data-v="${esc(s[0])}">${esc(s[0])} · ${s[1]} trạm</span>`).join(' ')||'không có'}</div></div>
+function planForm(it,i){const d=it.r.data;return`<div style="padding:4px 12px 12px"><div class="fm" style="grid-template-columns:minmax(0,320px) 1fr;align-items:end"><label>Số quyết định (DC) của kế hoạch – không bắt buộc<input type="text" data-pdc="${i}" value="${esc(it.dc||'')}" placeholder="ví dụ 2026_392823"></label><div class="mu">Gợi ý theo số trạm trùng: ${(it.sug||[]).map(s=>`<span class="chip" data-psg="${i}" data-v="${esc(s[0])}">${esc(s[0])} · ${s[1]} trạm</span>`).join(' ')||'không có'}</div></div>
  <div class="tw" style="margin-top:8px;max-height:300px"><table><thead><tr><th class="l">Tên hàng</th><th class="l">Mã</th><th>Tổng KH</th><th class="l">Loại</th><th class="l">Tính %</th></tr></thead><tbody>${d.items.map((x,j)=>`<tr><td class="l">${esc(x.n)}</td><td class="l">${esc(x.codes.join(', '))}</td><td>${nf0.format(d.rows.reduce((a,r)=>a+r[1][j],0))}</td><td class="l"><select data-pdir="${i}:${j}"><option value="x" ${x.dir==='x'?'selected':''}>Xuất</option><option value="w" ${x.dir==='w'?'selected':''}>Thu hồi</option></select></td><td class="l"><input type="checkbox" data-pex="${i}:${j}" ${x.ex?'':'checked'}></td></tr>`).join('')}</tbody></table></div></div>`}
 async function planSugg(pd){const ps=new Set(pd.rows.map(([c])=>{const z=res(c);return z?z.s:c}));const m=new Map();
  const scan=l=>{if(!l[6]||l[6].startsWith('PO'))return;const z=res(l[1],l[7]);if(!z||!ps.has(z.s))return;let s=m.get(l[6]);if(!s){s=new Set();m.set(l[6],s)}s.add(z.s)};
@@ -810,14 +850,14 @@ async function planSugg(pd){const ps=new Set(pd.rows.map(([c])=>{const z=res(c);
  for(const it of IMP.items)if((it.t==='x'||it.t==='w')&&it.r&&it.r.data)it.r.data.lines.forEach(scan);
  return[...m].map(([k,s])=>[k,s.size]).sort((a,b)=>b[1]-a[1]).slice(0,5)}
 async function impSave(){if(!S.admin){adminLogin(impSave);return}const its=IMP.items.filter(i=>i.st==='done'&&i.lvl!=='err'&&!i.saved);
- for(const it of its)if(it.t==='plan'&&!it.dc){toast('Nhập số quyết định cho file kế hoạch '+it.name);return}
+ for(const it of its)if(it.t==='plan'){it.dc=normDC(it.dc)||('KH '+it.name.replace(/\.[^.]+$/,'').replace(/^[0-9a-f]{8}-/,'').slice(0,40))}
  ld('Đang lưu…');const log=[];let mchg=false;
  try{for(const it of its){const d=it.r.data;
    if(['ds','mau','sup'].includes(it.t))mchg=true;
    else if(it.t==='asset'){await ST.set('snap:'+d.d,d);D.snaps[d.d]=d;const o=D.idx.snaps.find(s=>s.d===d.d);if(o)Object.assign(o,{file:d.file,n:d.n});else D.idx.snaps.push({d:d.d,file:d.file,n:d.n,t:0,tt:0,br:{}});D.idx.snaps.sort((a,b)=>a.d<b.d?-1:1);Object.assign(D.names,Object.fromEntries(Object.entries(it.r.names).filter(([k])=>!D.names[k])))}
    else if(it.t==='x'||it.t==='w'){const[c0,c1]=d.cov;for(const ym of monthsBetween(c0,c1)){const k=it.t+':'+ym;let doc=await loadMov(it.t,ym)||{l:[],dept:{}};doc.l=doc.l.filter(l=>l[0]<c0||l[0]>c1).concat(d.lines.filter(l=>l[0].slice(0,7)===ym));doc.dept=Object.assign(doc.dept||{},d.depts);D.mov[k]=doc;await ST.set('mov:'+k,doc);if(!D.idx.months[it.t].includes(ym))D.idx.months[it.t].push(ym)}
     D.idx.months[it.t].sort();const cv=D.idx.cov[it.t].filter(r=>!(r[0]>=c0&&r[1]<=c1));cv.push([c0,c1,it.name]);D.idx.cov[it.t]=cv.sort((a,b)=>a[0]<b[0]?-1:1);Object.assign(D.names,it.r.names)}
-   else if(it.t==='plan'){const p={dc:it.dc,name:it.name,sheet:d.sheet,items:d.items,rows:d.rows,upd:Date.now()};await ST.set('plan:'+it.dc,p);D.plans[it.dc]=p;if(!D.idx.plans.includes(it.dc))D.idx.plans.push(it.dc)}
+   else if(it.t==='plan'){const fm=/(20\d{2})(\d{2})(\d{2})/.exec(it.name);const from=fm&&+fm[2]>=1&&+fm[2]<=12&&+fm[3]>=1&&+fm[3]<=31?fm[1]+'-'+fm[2]+'-'+fm[3]:'';const p={dc:it.dc,from,name:it.name,sheet:d.sheet,items:d.items,rows:d.rows,upd:Date.now()};await ST.set('plan:'+it.dc,p);D.plans[it.dc]=p;if(!D.idx.plans.includes(it.dc))D.idx.plans.push(it.dc)}
    else if(it.t==='norm'){D.norm={rows:d,upd:Date.now()};await ST.set('norm',D.norm)}
    it.saved=true;log.push({u:Date.now(),f:it.name,t:LBL[it.t],l:it.lvl,m:it.L.filter(x=>x[0]!=='info').map(x=>x[1].replace(/<[^>]+>/g,'')).slice(0,3).join(' | ')})}
   if(mchg){D.master=IMP.master;D.master.upd=Date.now();await ST.set('master',D.master)}buildR(D.master);
@@ -825,7 +865,7 @@ async function impSave(){if(!S.admin){adminLogin(impSave);return}const its=IMP.i
   pickPeriods();CMP.key='';await saveAlerts();toast('Đã lưu '+its.length+' file'+(ST.mode==='local'?' trên máy':' lên Google Sheet'))}
  catch(e){console.error(e);toast('Lỗi khi lưu: '+(e.message||e),6000)}finally{ld('');refreshSel();if(S.tab==='imp')await vImp();else IMP.render()}}
 async function rebuildTotals(){for(const s of D.idx.snaps){const d=await loadSnap(s.d);if(!d)continue;let t=0,tt=0;const br={};for(const[raw,c,q,v]of d.a){const z=res(raw,d.g[raw]);if(!z)continue;if(z.b===TT){tt+=v;continue}t+=v;br[z.b]=(br[z.b]||0)+v}s.t=t;s.tt=tt;s.br=br}}
-async function saveAlerts(){try{const sa=S.A,sb=S.B;if(!sb)return;const r=await prep();if(!r)return;const pl=[];for(const dc of D.idx.plans){const p=await loadPlan(dc);if(!p)continue;const{X}=await dcLines(dc);const px=planProg(p,X,'x');pl.push({dc,px:px.total,none:px.none,n:px.n})}
+async function saveAlerts(){try{const sa=S.A,sb=S.B;if(!sb)return;const r=await prep();if(!r)return;const pl=[];for(const dc of D.idx.plans){const c=await planCalc(dc);if(!c)continue;const px=c.PX;pl.push({dc,px:px.total,none:px.none,n:px.n})}
  await ST.set('alerts',{upd:Date.now(),A:sa,B:sb,thr:S.cfg.thr,rate:S.cfg.rate,top:r.alerts.slice(0,10).map(o=>({s:o.s,b:o.b,dv:Math.round(usd(o.dv)),pv:Math.round(usd(o.pv)),cv:Math.round(usd(o.cv))})),plans:pl,emails:S.cfg.emails})}catch(e){console.warn(e)}}
 async function vImp(){const el=$('#p-imp');
  const cov=t=>D.idx.cov[t].map(r=>`<span class="chip">${vnd(r[0])} → ${vnd(r[1])}</span>`).join(' ')||'<span class="mu">chưa có</span>';
@@ -878,8 +918,8 @@ async function xlsAll(){ld('Đang tạo file Excel…');try{const wb=XLSX.utils.
  addSheet(wb,'Quyet dinh',[['Số quyết định','Phòng','Xuất ra trạm','Số trạm xuất','Thu hồi','Số trạm thu','Từ ngày','Đến ngày','Có kế hoạch']].concat(Object.entries(D.idx.dcs).sort((a,b)=>b[1].xv-a[1].xv).map(([k,m])=>[k,m.dept,xv(m.xv),m.xn,xv(m.wv),m.wn,vnd(m.d0),vnd(m.d1),D.idx.plans.includes(k)?'Có':''])),[16,16,14,10,14,10,11,11,10]);
  const un=await unassigned();addSheet(wb,'Ma chua gan',[['Mã trong file','Trạm đoán','CN gợi ý','Giá trị','Xuất hiện ở']].concat(un.map(x=>[x.raw,x.s,x.b,xv(x.v),[...x.src].join(', ')])),[22,16,10,14,40]);
  XLSX.writeFile(wb,'TaiSanTram_'+(S.B||'')+'_'+u+'.xlsx')}catch(e){console.error(e);toast('Lỗi xuất Excel: '+e.message,5000)}finally{ld('')}}
-function xlsDC(dc,plan,X,W){const wb=XLSX.utils.book_new(),u=uName();
- for(const[t,L]of[['x',X],['w',W]]){const vb=t==='x'?'Xuất':'Thu hồi';if(plan&&plan.items.some(i=>i.dir===t)){const p=planProg(plan,L,t);
+function xlsDC(dc,plan,X,W,PC){const wb=XLSX.utils.book_new(),u=uName();
+ for(const[t,L]of[['x',X],['w',W]]){const vb=t==='x'?'Xuất':'Thu hồi';if(plan&&PC&&plan.items.some(i=>i.dir===t)){const p=t==='x'?PC.PX:PC.PW;
    addSheet(wb,vb+' - tong hop',[['Quyết định',dc,'% '+vb.toLowerCase(),p.total==null?'':Math.round(p.total*10)/10],[],['Mặt hàng','Mã','Kế hoạch','Tính vào %','Thực tế','Thừa','%','Ghi chú']].concat(p.items.map(it=>[it.n,it.codes.join(', '),it.pq,it.cap,it.act,it.over,it.pct==null?'':Math.round(it.pct*10)/10,it.ex?'Không tính %':''])).concat([[],['Chi nhánh','Số trạm','%']]).concat(p.brs.map(b=>[b.b,b.n,b.pct==null?'':Math.round(b.pct*10)/10])),[40,22,10,10,10,8,8,14]);
    addSheet(wb,vb+' - tram',[['Trạm','Mã tủ','CN','%','Trạng thái',...p.items.flatMap(it=>[(it.n||it.codes[0])+' KH',(it.n||it.codes[0])+' TT'])]].concat(p.sites.map(s=>[s.s,s.cab,s.b,s.pct==null?'':Math.round(s.pct*10)/10,s.st,...p.items.flatMap(it=>[s.q[it.i],s.a[it.i]])])));
    if(p.outside.length)addSheet(wb,vb+' - ngoai KH',[['Trạm','CN','Giá trị ('+u+')']].concat(p.outside.map(o=>[o.s,o.b,xv(o.v)])))}
