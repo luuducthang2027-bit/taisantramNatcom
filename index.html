@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="vi" translate="no"><head><meta charset="utf-8"><meta name="google" content="notranslate"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Tài sản trạm Natcom</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600&display=swap" rel="stylesheet">
 <style>/* Tài sản trạm Natcom: navy + cam Natcom, gọn như tool Tồn kho */
@@ -228,19 +228,27 @@ const ST={mode:'local',api:'',remote:{},online:false,pending:0,last:'',err:'',
   try{const r=await this.rpc({op:'list'});if(r.ok){this.remote=r.keys||{};this.online=true;this.err=''}else throw Error(r.err)}catch(e){this.online=false;this.err=String(e.message||e)}
   await this.flush()},
  async get(k){const loc=await IDB.get(k),rem=this.remote[k];
-  if(this.online&&rem&&(!loc||loc.u<rem.u)&&!(loc&&loc.d)){try{const r=await this.rpc({op:'get',key:k});if(r.ok&&r.v){await IDB.set(k,{v:r.v,u:r.u});return JSON.parse(await ungz(r.v))}}catch(e){this.err=String(e)}}
+  /* lấy bản trên Google Sheet nếu mới hơn; bản sửa trên máy chưa gửi chỉ được giữ khi đang là admin */
+  if(this.online&&rem&&(!loc||loc.u<rem.u||(loc.d&&!S.admin))){try{const r=await this.rpc({op:'get',key:k});if(r.ok&&r.v){await IDB.set(k,{v:r.v,u:r.u,b:r.u});return JSON.parse(await ungz(r.v))}}catch(e){this.err=String(e)}}
   return loc?JSON.parse(await ungz(loc.v)):null},
- async set(k,obj){const v=await gz(JSON.stringify(obj)),u=Date.now();await IDB.set(k,{v,u,d:1});
+ async set(k,obj){const v=await gz(JSON.stringify(obj)),u=Date.now(),old=await IDB.get(k);
+  /* b = phiên bản Google Sheet mà bản sửa này dựa trên, để không ghi đè dữ liệu mới hơn của người khác */
+  const b=old?(old.b??(old.d?0:old.u)):0;await IDB.set(k,{v,u,d:1,b});
   if(this.mode!=='local')await this.push(k);svUpd()},
  async push(k){const loc=await IDB.get(k);if(!loc||!loc.d)return true;
-  try{const r=await this.rpc({op:'set',key:k,v:loc.v,pw:S.pw});if(!r.ok)throw Error(r.err||'lỗi');await IDB.set(k,{v:loc.v,u:r.u||loc.u});this.remote[k]={u:r.u||loc.u};this.online=true;this.last=new Date().toLocaleTimeString('vi-VN');return true}
-  catch(e){this.err=String(e.message||e);this.online=false;return false}},
+  /* bản trên Google Sheet mới hơn bản sửa trên máy: bỏ bản trên máy, không ghi đè */
+  const rem=this.remote[k];if(rem&&rem.u>(loc.b||0)){await IDB.del(k);this.conflict=(this.conflict||0)+1;return true}
+  if(!S.admin)return false;
+  let r;try{r=await this.rpc({op:'set',key:k,v:loc.v,pw:S.pw})}catch(e){this.err=String(e.message||e);this.online=false;return false}
+  if(!r.ok){this.err=r.err||'lỗi';return false}
+  try{await IDB.set(k,{v:loc.v,u:r.u||loc.u,b:r.u||loc.u});this.remote[k]={u:r.u||loc.u};this.online=true;this.last=new Date().toLocaleTimeString('vi-VN');return true}
+  catch(e){this.err=String(e.message||e);return false}},
  async flush(){if(this.mode==='local')return;let n=0;for(const k of await IDB.keys()){const l=await IDB.get(k);if(l&&l.d){if(!(await this.push(k)))n++}}this.pending=n;svUpd()},
  async del(k){await IDB.del(k);if(this.mode!=='local'){try{await this.rpc({op:'del',key:k,pw:S.pw})}catch(e){}}}};
 async function svUpd(){let n=0;for(const k of await IDB.keys()){const l=await IDB.get(k);if(l&&l.d)n++}ST.pending=n;
  const d=$('#svd'),t=$('#svt'),s=$('#svs');
  if(ST.mode==='local'){d.className='dot wa';t.textContent='Bản offline · lưu trên máy';s.textContent=n?n+' mục chưa đồng bộ (chưa có link Google Sheet)':'Dữ liệu chỉ trên máy này'}
- else if(ST.online&&!n){d.className='dot ok';t.textContent='Đã lưu Google Sheet';s.textContent=ST.last?'Lần lưu gần nhất '+ST.last:'Đã kết nối'}
+ else if(ST.online&&(!n||!S.admin)){d.className='dot ok';t.textContent='Đã nối Google Sheet';s.textContent=ST.last?'Lần lưu gần nhất '+ST.last:'Đã kết nối'}
  else{d.className='dot '+(ST.online?'wa':'er');t.textContent=ST.online?'Đang chờ đồng bộ':'Mất kết nối Google Sheet';s.textContent=(n?n+' mục chờ gửi. ':'')+(ST.err?ST.err.slice(0,80):'')}}
 /* ----- tra mã tủ → trạm → chi nhánh ----- */
 const NB=b=>{b=String(b??'').trim().toUpperCase();return({OUE1:'OUE01',OUE2:'OUE02',OUE3:'OUE03',NATCOM:'NATCOM','':''})[b]??b};
