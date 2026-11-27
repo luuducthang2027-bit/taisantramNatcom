@@ -139,6 +139,7 @@ header{top:52px}.srch input{width:160px}main{padding:10px}.g2,.g3{grid-template-
    <label for="fA">Kỳ trước</label><select id="fA"></select>
    <label for="fB">Kỳ này</label><select id="fB"></select>
    <select id="fBr" aria-label="Chi nhánh"><option value="">Tất cả chi nhánh</option></select>
+   <div class="seg" id="lang"><button type="button" data-l="vi">VI</button><button type="button" data-l="en">EN</button><button type="button" data-l="ht">HT</button></div>
    <div class="seg" id="unit"><button type="button" data-u="USD">USD</button><button type="button" data-u="G">Gốc</button></div>
    <div class="srch"><input type="search" id="gq" placeholder="Tìm trạm, mã hàng, DC, nhân viên…" autocomplete="off"><div class="sug" id="gsug"></div></div>
    <button class="btn p" id="xls" type="button">Xuất Excel</button>
@@ -162,10 +163,155 @@ header{top:52px}.srch input{width:160px}main{padding:10px}.g2,.g3{grid-template-
 <div class="dr" id="dr"><div class="ov"></div><div class="bx" id="drb"></div></div>
 <div class="md" id="md"><div class="bx" id="mdb"></div></div>
 <div class="ld" id="ld"></div><div class="tt" id="tt"></div>
-<script>'use strict';
+<script>/* ===== Ngôn ngữ: Tiếng Việt / English / Kreyòl ayisyen =====
+   Giao diện viết bằng tiếng Việt; khi chọn EN/HT, các cụm từ dưới đây được thay trên màn hình và trong file Excel.
+   Cụm dài được ưu tiên trước cụm ngắn. */
+const I18N=[
+
+/* câu giải thích, từ nối */
+['dòng phiếu xuất (Export Summary) nào có','any Export Summary line whose','nenpòt liy Export Summary ki gen'],['trùng với kế hoạch thì tính là đã xuất theo kế hoạch, không cần ghi số QĐ','matches the plan counts as issued under the plan; no decision number needed','ki matche ak plan an konte kòm soti dapre plan an; pa bezwen nimewo desizyon'],
+['chỉ tính phiếu từ ngày lập kế hoạch trở đi','only vouchers from the plan date onward','sèlman bon depi dat plan an'],['Thu hồi tính tương tự với các mã recall','Recoveries are counted the same way for recall items','Rekiperasyon konte menm jan pou atik recall'],['Phiếu xuất hiện có đến ngày','Issue vouchers available up to','Bon soti disponib jiska'],
+['kể cả mã tương đương','including equivalent codes','ansanm ak kòd ekivalan'],['mã tủ/mã trạm','cabinet/site code','kòd kabinè/sit'],['dòng phiếu','voucher lines','liy bon'],['phiếu','vouchers','bon'],['từ','from','depi'],['đến','to','jiska'],['chưa','not yet','poko'],['và','and','ak'],['hoặc','or','oswa'],
+['Kiểm tra ngày bắt đầu tính (nút Sửa kế hoạch), hoặc nạp file Export Summary của giai đoạn thực hiện.','Check the start date (Edit plan) or load the Export Summary for the execution period.','Verifye dat kòmansman an (Modifye plan) oswa chaje Export Summary peryòd egzekisyon an.'],
+['Số QĐ trong file xuất có nhiều trạm trùng kế hoạch nhất','Decision numbers in export files with the most plan sites','Nimewo desizyon nan fichye soti ki gen plis sit nan plan an'],['bấm','click','klike'],['Thu hồi:','Recovery:','Rekiperasyon:'],
+['Đã xuất = mọi phiếu xuất có mã trạm/tủ và mã hàng trùng kế hoạch','Issued = every issue voucher whose site/cabinet and item codes match the plan','Soti = chak bon soti ki gen kòd sit/kabinè ak kòd atik ki matche ak plan an'],
+/* menu, tiêu đề */
+['Tài sản trạm Natcom','Natcom station assets','Byen sit Natcom'],['Tài sản trạm','Station assets','Byen sit'],['Phòng QLTS · Natcom','Asset Mgmt Dept · Natcom','Depatman Jesyon Byen · Natcom'],
+['Tổng quan','Overview','Apèsi'],['Xu hướng','Trends','Tandans'],['Phân tích','Analysis','Analiz'],['Kiểm soát','Control','Kontwòl'],['Dữ liệu','Data','Done'],
+['Chi nhánh','Branch','Branch'],['Báo cáo kho','Warehouse report','Rapò depo'],['Theo ngày','By day','Pa jou'],['Nhân viên','Staff','Anplwaye'],
+['Quyết định (DC)','Decisions (DC)','Desizyon (DC)'],['Quyết định','Decision','Desizyon'],['Kế hoạch','Plan','Plan'],['Thừa tài sản','Excess assets','Twòp ekipman'],['Mã chưa gán','Unassigned codes','Kòd ki pa plase'],['Nạp dữ liệu','Load data','Chaje done'],
+['So sánh tài sản trạm giữa hai kỳ chốt','Compare station assets between two closing dates','Konpare byen sit ant de dat fèmti'],['Tài sản tại trạm qua các kỳ','Station assets over closing dates','Byen sit sou plizyè dat fèmti'],
+['Tăng giảm theo chi nhánh','Change by branch','Chanjman pa branch'],['Tăng giảm, đối soát từng trạm','Change and reconciliation by station','Chanjman ak verifikasyon pa sit'],['Kho nào xuất ra trạm bao nhiêu','How much each warehouse issued to sites','Konbyen chak depo bay sit yo'],
+['Xuất và thu hồi từng ngày','Issues and recoveries per day','Soti ak rekiperasyon chak jou'],['Nhân viên giữ nhiều trạm, nhiều tiền','Staff holding the most sites and value','Anplwaye ki kenbe plis sit ak valè'],
+['Tiến độ xuất, thu hồi theo quyết định','Issue and recovery progress by decision','Pwogrè soti ak rekiperasyon pa desizyon'],['% hoàn thành theo file kế hoạch','% completion against the plan file','% fini dapre fichye plan an'],
+['So với định mức vật tư','Compared with material norms','Konpare ak nòm materyèl'],['Mã trạm chưa có trong danh sách trạm','Site codes missing from the site list','Kòd sit ki pa nan lis sit yo'],['Nạp file, kiểm tra, cài đặt','Load files, check, settings','Chaje fichye, verifye, paramèt'],
+/* thanh lọc */
+['Kỳ trước','Previous','Anvan'],['Kỳ này','Current','Kounye a'],['Tất cả chi nhánh','All branches','Tout branch'],['(không so sánh)','(no comparison)','(pa konpare)'],['chưa có','none yet','poko genyen'],
+['Tìm trạm, mã hàng, DC, nhân viên…','Search site, item, DC, staff…','Chèche sit, atik, DC, anplwaye…'],['Xuất Excel','Export Excel','Ekspòte Excel'],['Gốc','Local','Lokal'],
+['Đồng bộ ngay','Sync now','Senkronize kounye a'],['Admin: đang đăng nhập','Admin: signed in','Admin: konekte'],
+['Đang kết nối…','Connecting…','Ap konekte…'],['Đã nối Google Sheet','Connected to Google Sheet','Konekte ak Google Sheet'],['Đã lưu Google Sheet','Saved to Google Sheet','Anrejistre nan Google Sheet'],['Mất kết nối Google Sheet','Google Sheet disconnected','Koneksyon Google Sheet koupe'],
+['Bản offline · lưu trên máy','Offline · saved on this device','Offline · anrejistre sou aparèy sa'],['Dữ liệu chỉ trên máy này','Data only on this device','Done sèlman sou aparèy sa'],['Lần lưu gần nhất','Last saved','Dènye anrejistreman'],['Đã kết nối','Connected','Konekte'],
+['Đang chờ đồng bộ','Waiting to sync','Ap tann senkronizasyon'],['mục chờ gửi','items waiting','eleman ap tann'],['mục chưa đồng bộ','items not synced','eleman poko senkronize'],['chưa có link Google Sheet','no Google Sheet link yet','poko gen lyen Google Sheet'],
+/* trạng thái, thông báo */
+['Đang tải dữ liệu…','Loading data…','Ap chaje done…'],['Đang tính so sánh…','Comparing…','Ap konpare…'],['Đang tính kế hoạch…','Computing plan…','Ap kalkile plan…'],['Đang tính quyết định…','Computing decision…','Ap kalkile desizyon…'],
+['Đang tạo file Excel…','Creating Excel file…','Ap kreye fichye Excel…'],['Đang tạo file…','Creating file…','Ap kreye fichye…'],['Đang lưu…','Saving…','Ap anrejistre…'],['Đang đồng bộ…','Syncing…','Ap senkronize…'],['Đang dò mã…','Scanning codes…','Ap chèche kòd…'],['Đang tính…','Computing…','Ap kalkile…'],
+['Đang nhận dạng…','Detecting…','Ap idantifye…'],['Đang đọc…','Reading…','Ap li…'],['Đang đọc','Reading','Ap li'],['Chờ','Waiting','Ap tann'],
+['Đã đăng nhập admin','Admin signed in','Admin konekte'],['Đã đăng xuất admin','Admin signed out','Admin dekonekte'],['Đã lưu cài đặt','Settings saved','Paramèt anrejistre'],['Đã lưu phân loại','Classification saved','Klasifikasyon anrejistre'],['Đã đồng bộ','Synced','Senkronize'],
+['Không kết nối được Google Sheet','Cannot connect to Google Sheet','Pa ka konekte ak Google Sheet'],['Lỗi hiển thị','Display error','Erè afichaj'],['Lỗi khi lưu','Save error','Erè pandan anrejistreman'],['Lỗi khi đọc','Read error','Erè pandan lekti'],['Lỗi xuất Excel','Excel export error','Erè ekspòtasyon Excel'],
+['Đăng nhập admin','Admin sign-in','Koneksyon admin'],['Đăng nhập admin để lưu','Sign in as admin to save','Konekte kòm admin pou anrejistre'],['Mật khẩu','Password','Modpas'],['Sai mật khẩu','Wrong password','Move modpas'],['Đăng nhập','Sign in','Konekte'],['Hủy','Cancel','Anile'],['Đóng','Close','Fèmen'],['Lưu','Save','Anrejistre'],
+/* tổng quan */
+['Chưa có dữ liệu tài sản','No asset data yet','Poko gen done byen'],['Admin vào tab Nạp dữ liệu, kéo thả file Tổng tài sản trạm, Tổng xuất, Thu hồi, Danh sách trạm, Kế hoạch','Admin: open Load data and drop the Station assets, Export, Recovery, Site list and Plan files','Admin: ale nan Chaje done epi depoze fichye Byen sit, Soti, Rekiperasyon, Lis sit ak Plan yo'],
+['Cảnh báo','Alert','Alèt'],['trạm tăng ≥','sites up ≥','sit ki monte ≥'],['xem tất cả','see all','wè tout'],['Không có trạm tăng đột biến','No sudden site increase','Pa gen sit ki monte toudenkou'],['USD so với kỳ trước','USD vs previous period','USD konpare ak peryòd anvan'],['ngưỡng','threshold','limit'],
+['Chỉ so tồn, chưa đối soát phiếu','Stock comparison only, vouchers not reconciled','Konparezon stòk sèlman, bon yo pa verifye'],['Phiếu xuất phủ','Issue vouchers cover','Bon soti kouvri'],['thu hồi phủ','recoveries cover','rekiperasyon kouvri'],['số ngày từ','of days from','jou depi'],['Còn thiếu','Missing','Manke'],
+['Tài sản tại trạm','Station assets','Byen nan sit'],['So với','Vs','Konpare ak'],['Kỳ so sánh','Comparison period','Peryòd konparezon'],['Nạp thêm kỳ trước để so sánh','Load an earlier period to compare','Chaje yon peryòd anvan pou konpare'],
+['Xuất ra trạm trong kỳ','Issued to sites in period','Bay sit nan peryòd la'],['Trạm mới / hết tài sản','New / emptied sites','Sit tou nèf / sit vid'],['trạm lệch phiếu','sites with voucher gaps','sit ki gen diferans bon'],['chưa đối soát phiếu','vouchers not reconciled','bon yo pa verifye'],
+['Tổng trạm (NAT_TT)','Hub sites (NAT_TT)','Sit santral (NAT_TT)'],['tính riêng, không cộng vào trạm','counted separately','kalkile apa'],['Chất lượng dữ liệu','Data quality','Kalite done'],['mã chưa gán','unassigned codes','kòd ki pa plase'],
+['Tài sản tại trạm theo kỳ chốt','Station assets by closing date','Byen sit pa dat fèmti'],['tất cả chi nhánh','all branches','tout branch'],['Cầu nối tồn tài sản','Asset bridge','Pon byen yo'],['Tồn đầu','Opening','Kòmansman'],['Tồn cuối','Closing','Fen'],
+['± Chênh lệch','± Difference','± Diferans'],['+ Xuất','+ Issued','+ Soti'],['− Thu hồi','− Recovered','− Rekipere'],['Đủ phiếu xuất và thu hồi trong kỳ','Complete issue and recovery vouchers','Tout bon soti ak rekiperasyon yo la'],['Thiếu phiếu trong kỳ nên phần chênh lệch còn lớn','Missing vouchers, so the difference is still large','Gen bon ki manke, kidonk diferans lan toujou gwo'],
+['Cần ít nhất 2 kỳ chốt tài sản','Need at least 2 closing dates','Bezwen omwen 2 dat fèmti'],['Chi nhánh: kỳ trước và kỳ này','Branch: previous vs current','Branch: anvan ak kounye a'],['bấm để xem trạm','click to see sites','klike pou wè sit yo'],
+['Kế hoạch theo quyết định','Plans by decision','Plan pa desizyon'],['% theo số lượng từng mã','% by quantity per item','% pa kantite chak atik'],['Top 5 tăng','Top 5 increases','5 pi gwo ogmantasyon'],['Top 5 giảm','Top 5 decreases','5 pi gwo diminisyon'],
+['Chưa có file kế hoạch. Nạp ở tab Nạp dữ liệu','No plan file yet. Load it in Load data','Poko gen fichye plan. Chaje l nan Chaje done'],
+['Phần tăng giảm không giải thích bằng phiếu','Change not explained by vouchers','Chanjman bon yo pa eksplike'],['đổi đơn giá, điều chuyển giữa trạm, thiếu phiếu…','price changes, transfers between sites, missing vouchers…','chanjman pri, transfè ant sit, bon ki manke…'],
+/* trạng thái trạm */
+['Trạm mới','New site','Sit tou nèf'],['Hết tài sản','Emptied','Vid'],['Lệch phiếu','Voucher gap','Diferans bon'],['Không đổi','Unchanged','Pa chanje'],['Tổng trạm','Hub site','Sit santral'],['TỔNG TRẠM','HUB SITE','SIT SANTRAL'],['Tuyến','Link','Lyen'],['Khớp','Matched','Matche'],
+['Tăng giảm','Change','Chanjman'],['Tăng','Up','Monte'],['Giảm','Down','Desann'],
+/* xu hướng, chi nhánh, trạm */
+['Tài sản tại trạm qua các kỳ chốt','Station assets over closing dates','Byen sit sou dat fèmti yo'],['Thay đổi kỳ cuối','Last change','Dènye chanjman'],['Tổng (không tính NAT_TT)','Total (excl. NAT_TT)','Total (san NAT_TT)'],['Các kỳ đã nạp','Loaded periods','Peryòd ki chaje'],
+['Ngày chốt','Closing date','Dat fèmti'],['Số dòng','Rows','Liy'],['Khóa sổ','Locked','Fèmen'],['Đã khóa','Locked','Fèmen'],
+['Xuất và thu hồi theo chi nhánh','Issues and recoveries by branch','Soti ak rekiperasyon pa branch'],['Bảng chi nhánh','Branch table','Tablo branch'],['bấm một dòng để xem trạm','click a row to see sites','klike sou yon liy pou wè sit yo'],
+['Số trạm','Sites','Sit'],['Xuất ra trạm','Issued to sites','Bay sit yo'],['Chênh lệch','Difference','Diferans'],['Hết TS','Emptied','Vid'],['Trạng thái','Status','Estati'],['Mọi trạng thái','All statuses','Tout estati'],
+['Lọc mã trạm','Filter site code','Filtre kòd sit'],['Chỉ trạm tăng ≥','Only sites up ≥','Sèlman sit ki monte ≥'],['chưa đủ phiếu để đối soát','not enough vouchers to reconcile','pa ase bon pou verifye'],['Dấu * là trạm tool đoán theo mã','* = site guessed from the code','* = sit zouti a devine ak kòd la'],
+['Chênh lệch phiếu','Voucher gap','Diferans bon'],['Mã trong file','Code in file','Kòd nan fichye'],['cấu hình','config','konfigirasyon'],['Tài sản qua các kỳ','Assets over periods','Byen sou peryòd yo'],['Từng mã vật tư','By item','Pa atik'],
+['Tên hàng','Item name','Non atik'],['SL trước','Prev qty','Kantite anvan'],['SL nay','Current qty','Kantite kounye a'],['Tăng giảm SL','Qty change','Chanjman kantite'],['SL xuất','Issued qty','Kantite soti'],['SL thu hồi','Recovered qty','Kantite rekipere'],['Lệch SL','Qty gap','Diferans kantite'],['Giá trị nay','Current value','Valè kounye a'],
+['Phiếu trong kỳ','Vouchers in period','Bon nan peryòd la'],['Không thấy trạm','Site not found','Pa jwenn sit'],['trong kỳ đang xem','in the current period','nan peryòd la'],['Trạm','Site','Sit'],
+/* báo cáo kho */
+['Báo cáo kho xuất ra trạm','Warehouse issues to sites','Depo ki bay sit yo'],['Số kho có xuất','Warehouses issuing','Depo ki bay'],['Kho xuất nhiều nhất','Top issuing warehouse','Depo ki bay plis'],['Số trạm nhận hàng','Sites receiving','Sit ki resevwa'],
+['Xếp hạng kho','Warehouse ranking','Klasman depo'],['bấm để xem trạm, DC','click to see sites, DC','klike pou wè sit, DC'],['Chi nhánh kho ×','Warehouse branch ×','Branch depo ×'],['màu càng đậm xuất càng nhiều','darker = more issued','pi fonse = plis soti'],
+['Kho của','Warehouse of','Depo'],['Tất cả kho','All warehouses','Tout depo'],['Kho công ty','Company warehouse','Depo konpayi'],['Giá trị xuất ra trạm','Value issued to sites','Valè bay sit yo'],['Kho chi nhánh','Branch warehouse','Depo branch'],['Theo DC','By DC','Pa DC'],['Theo trạm','By site','Pa sit'],['Số DC','DC count','Kantite DC'],
+['Ngày','Day','Jou'],['Tháng','Month','Mwa'],['Năm','Year','Ane'],['ngày','day','jou'],['tháng','month','mwa'],['năm','year','ane'],['Kho','Warehouse','Depo'],
+/* theo ngày */
+['Chưa có phiếu xuất, thu hồi','No issue or recovery vouchers yet','Poko gen bon soti oswa rekiperasyon'],['Nạp file Tổng xuất và Thu hồi để xem theo ngày','Load Export and Recovery files to see daily data','Chaje fichye Soti ak Rekiperasyon pou wè chak jou'],
+['Tăng giảm tài sản trạm theo ngày','Daily station asset change','Chanjman byen sit chak jou'],['tăng = xuất ra trạm, giảm = thu hồi','up = issued to sites, down = recovered','monte = bay sit, desann = rekipere'],['Tổng xuất ra trạm','Total issued to sites','Total bay sit yo'],['Tổng thu hồi','Total recovered','Total rekipere'],
+['Ròng','Net','Nèt'],['Ngày xuất nhiều nhất','Peak issue day','Jou ki bay plis'],['Xuất (tăng)','Issued (up)','Soti (monte)'],['Thu hồi (giảm)','Recovered (down)','Rekipere (desann)'],['Lũy kế ròng','Cumulative net','Total nèt akimile'],['Từng ngày','Each day','Chak jou'],['Lũy kế','Cumulative','Akimile'],
+['10 lần xuất lớn nhất (trạm × ngày)','10 largest issues (site × day)','10 pi gwo soti (sit × jou)'],
+/* nhân viên */
+['Nhân viên giữ tài sản trạm','Staff holding site assets','Anplwaye ki kenbe byen sit'],['Giữ từ 50 trạm','Holding 50+ sites','Kenbe 50 sit oswa plis'],['Người giữ nhiều nhất','Largest holder','Moun ki kenbe plis'],['Top nhân viên theo giá trị','Top staff by value','Pi gwo anplwaye pa valè'],
+['Không tính tổng trạm NAT_TT','Exclude hub sites NAT_TT','San sit santral NAT_TT'],['Top nhân viên theo số trạm','Top staff by site count','Pi gwo anplwaye pa kantite sit'],['Danh sách nhân viên','Staff list','Lis anplwaye'],['CN chính','Main branch','Branch prensipal'],['Số trạm thay đổi','Site count change','Chanjman kantite sit'],
+['Giá trị đang giữ','Value held','Valè li kenbe'],['Các trạm đang giữ','Sites held','Sit li kenbe'],['Không ghi người quản lý','No manager recorded','Pa gen manadjè'],
+/* quyết định, kế hoạch */
+['Chưa có số quyết định nào','No decision numbers yet','Poko gen nimewo desizyon'],['Số DC được đọc tự động từ cột Interpretation','DC numbers are read from the Interpretation column','Nimewo DC yo li nan kolòn Interpretation'],
+['Gõ số quyết định hoặc mã phòng, ví dụ 392823 hoặc AP-DAO','Type a decision number or department, e.g. 392823 or AP-DAO','Tape nimewo desizyon oswa depatman, egzanp 392823 oswa AP-DAO'],['Tất cả quyết định','All decisions','Tout desizyon'],['số · bấm để xem tiến độ','numbers · click to see progress','nimewo · klike pou wè pwogrè'],
+['Số quyết định','Decision no.','Nimewo desizyon'],['Phòng','Dept','Depatman'],['Số trạm xuất','Sites issued','Sit ki resevwa'],['Số trạm thu','Sites recovered','Sit rekipere'],['Từ ngày','From','Depi'],['Đến ngày','To','Jiska'],['Có kế hoạch','Has plan','Gen plan'],
+['có kế hoạch','has plan','gen plan'],['chưa có phiếu','no vouchers yet','poko gen bon'],['Tải kế hoạch đã cập nhật số xuất','Download plan updated with issued qty','Telechaje plan ak kantite ki soti'],['Tải kế hoạch đã cập nhật','Download updated plan','Telechaje plan ajou'],['Xuất Excel quyết định','Export decision to Excel','Ekspòte desizyon an Excel'],['Danh sách DC','DC list','Lis DC'],
+['Xuất ra trạm','Issued to sites','Bay sit yo'],['Thu hồi','Recovery','Rekiperasyon'],['Tổng quyết định','Decision total','Total desizyon'],['Trạm kế hoạch','Planned sites','Sit nan plan'],['Đủ','Complete','Konplè'],['Thiếu','Partial','Pa konplè'],['Chưa xuất','Not issued','Poko soti'],['Chưa thu','Not recovered','Poko rekipere'],
+['Từng mặt hàng','By item','Pa atik'],['Từng chi nhánh','By branch','Pa branch'],['bấm để lọc trạm','click to filter sites','klike pou filtre sit'],['Từng trạm','By site','Pa sit'],['không tính','not counted','pa konte'],['Xuất thừa','Over-issued','Soti an plis'],['Thu hồi thừa','Over-recovered','Rekipere an plis'],
+['Mã tủ','Cabinet','Kabinè'],['Có xuất thừa','Over-issued','Soti an plis'],['Có thu hồi thừa','Over-recovered','Rekipere an plis'],['ngoài kế hoạch','outside the plan','andeyò plan an'],['không có trong kế hoạch','not in the plan','pa nan plan an'],
+['Trạm xuất theo QĐ nhưng ngoài kế hoạch','Sites issued under the decision but outside the plan','Sit ki resevwa pa desizyon an men andeyò plan an'],
+['Đã xuất','Issued','Soti'],['Đã thu','Recovered','Rekipere'],['mọi phiếu','all vouchers','tout bon'],['có mã trạm/tủ và mã hàng trùng kế hoạch','with site/cabinet and item codes matching the plan','ki gen kòd sit/kabinè ak kòd atik ki matche ak plan an'],['không cần ghi số QĐ','no decision number needed','pa bezwen nimewo desizyon'],
+['% = trung bình % các mã. Mỗi trạm, mỗi mã tối đa 100%','% = average % of items. Max 100% per site and item','% = mwayèn % atik yo. Maksimòm 100% pou chak sit ak atik'],['vượt kế hoạch bôi đỏ, không cộng thêm','above plan shown in red, not added','plis pase plan an an wouj, pa ajoute'],
+['Theo chi nhánh','By branch','Pa branch'],['Theo mã hàng','By item','Pa atik'],['Số mã hàng','Item count','Kantite atik'],['Số ngày có phiếu','Days with vouchers','Jou ki gen bon'],['Giá trị','Value','Valè'],
+['Quyết định này chưa có file kế hoạch nên chỉ hiện số thực tế. Nạp file kế hoạch để có % hoàn thành.','No plan file for this decision, actual figures only. Load a plan file to get % completion.','Desizyon sa pa gen plan, se chif reyèl sèlman. Chaje yon plan pou jwenn % fini.'],
+['Kế hoạch chưa có hàng recall nên không tính %. Đây là số đã thu hồi thực tế.','The plan has no recall items, so no %. These are actual recoveries.','Plan an pa gen atik recall, kidonk pa gen %. Sa se rekiperasyon reyèl.'],
+['Chưa có phiếu thu hồi','No recovery vouchers yet','Poko gen bon rekiperasyon'],['Chưa có phiếu xuất','No issue vouchers yet','Poko gen bon soti'],['theo quyết định này','for this decision','pou desizyon sa'],
+['Chưa có file kế hoạch','No plan file yet','Poko gen fichye plan'],['Cách tool tính','How it is calculated','Kijan li kalkile'],['dòng phiếu khớp','matching voucher lines','liy bon ki matche'],['Đổi số QĐ','Change decision no.','Chanje nimewo desizyon'],['Sửa kế hoạch','Edit plan','Modifye plan'],['Xem chi tiết','View details','Wè detay'],
+['Chưa có phiếu xuất nào trùng mã trạm + mã hàng của kế hoạch','No issue vouchers match the plan site + item codes','Pa gen bon soti ki matche ak kòd sit + atik plan an'],['Kiểm tra ngày bắt đầu tính','Check the start date','Verifye dat kòmansman an'],
+['Danh sách kế hoạch','Plan list','Lis plan'],['Số mã','Items','Atik'],['Dòng phiếu khớp','Matching lines','Liy ki matche'],['% xuất','% issued','% soti'],['% thu hồi','% recovered','% rekipere'],['Ngoài KH','Outside plan','Andeyò plan'],['Ngày nạp','Loaded on','Dat chajman'],['File','File','Fichye'],
+['không có kế hoạch recall','no recall plan','pa gen plan recall'],['trạm ngoài KH','sites outside plan','sit andeyò plan'],['Đổi số quyết định cho kế hoạch','Change the plan decision number','Chanje nimewo desizyon plan an'],['Số QĐ hiện tại','Current decision no.','Nimewo aktyèl'],['Số QĐ đúng','Correct decision no.','Bon nimewo desizyon'],
+['Tính phiếu xuất/thu hồi từ ngày','Count vouchers from date','Konte bon depi dat'],['để trống = mọi ngày','blank = all dates','vid = tout dat'],['Loại','Type','Kalite'],['Tính %','Count in %','Konte nan %'],['Xuất','Issue','Soti'],['Phân loại mã hàng','Item classification','Klasifikasyon atik'],
+['Đã đổi sang','Changed to','Chanje an'],['Nhập số quyết định','Enter a decision number','Antre yon nimewo desizyon'],
+/* thừa tài sản, mã chưa gán */
+['Chưa có file định mức','No norm file yet','Poko gen fichye nòm'],['Nạp file định mức','Load norm file','Chaje fichye nòm'],['Trạm vượt định mức','Sites above norm','Sit ki depase nòm'],['Giá trị thừa','Excess value','Valè an plis'],['Số dòng định mức','Norm rows','Liy nòm'],
+['Mã hàng thừa nhiều nhất','Most excess items','Atik ki depase plis'],['Thực tế','Actual','Reyèl'],['Định mức','Norm','Nòm'],['Thừa','Excess','An plis'],['Mã hàng','Item code','Kòd atik'],['Chi tiết','Details','Detay'],['Không có trạm vượt định mức','No site above norm','Pa gen sit ki depase nòm'],
+['Cách bổ sung','How to add','Kijan pou ajoute'],['Tải file bổ sung (.xlsx)','Download fill-in file (.xlsx)','Telechaje fichye pou ranpli (.xlsx)'],['Nạp file đã điền','Upload filled file','Chaje fichye ranpli a'],['Đoán được trạm','Site guessed','Sit devine'],['Giá trị liên quan','Related value','Valè ki konsène'],
+['Trạm đoán','Guessed site','Sit devine'],['CN gợi ý','Suggested branch','Branch sijere'],['chưa rõ','unknown','enkoni'],['Xuất hiện ở','Seen in','Parèt nan'],['Danh sách','List','Lis'],['tool đoán theo ký tự đầu','guessed from the prefix','devine ak premye lèt yo'],
+/* nạp dữ liệu */
+['Nạp file','Load files','Chaje fichye'],['thả nhiều file một lúc, tool tự nhận dạng và kiểm tra','drop several files at once; the tool detects and checks them','depoze plizyè fichye; zouti a idantifye epi verifye yo'],['Kéo thả file vào đây hoặc bấm để chọn','Drop files here or click to choose','Depoze fichye isit oswa klike pou chwazi'],
+['Lưu vào dữ liệu','Save to data','Anrejistre nan done'],['Xóa danh sách','Clear list','Efase lis'],['Dữ liệu đã có','Existing data','Done ki la deja'],['Kỳ chốt tài sản','Closing dates','Dat fèmti'],['Phiếu xuất','Issue vouchers','Bon soti'],['Phiếu thu hồi','Recovery vouchers','Bon rekiperasyon'],
+['Danh sách trạm','Site list','Lis sit'],['trạm chuẩn','standard sites','sit estanda'],['dòng Mau_Tram_Tu','Mau_Tram_Tu rows','liy Mau_Tram_Tu'],['mã bổ sung','added codes','kòd ajoute'],['Khóa sổ kỳ chốt','Lock closing dates','Fèmen dat fèmti'],['Cài đặt','Settings','Paramèt'],['chỉ admin sửa được','admin only','admin sèlman'],
+['Tỷ giá','Exchange rate','To chanj'],['gốc / 1 USD','local / 1 USD','lokal / 1 USD'],['Ngưỡng cảnh báo trạm tăng','Site increase alert threshold','Limit alèt ogmantasyon sit'],['Mã không tính % kế hoạch','Items excluded from plan %','Atik ki pa nan % plan an'],['chỉ báo đỏ','red only','wouj sèlman'],
+['cách nhau dấu phẩy','comma separated','separe ak vigil'],['Mã tương đương','Equivalent codes','Kòd ekivalan'],['mỗi nhóm một dòng, các mã cách nhau dấu phẩy','one group per line, codes comma separated','yon gwoup pa liy, kòd separe ak vigil'],['Email nhận cảnh báo hàng tuần','Weekly alert emails','Imèl pou alèt chak semèn'],
+['Link Apps Script (/exec) của máy này','Apps Script link (/exec) for this device','Lyen Apps Script (/exec) aparèy sa'],['Lưu cài đặt','Save settings','Anrejistre paramèt'],['Tải toàn bộ dữ liệu (.json)','Download all data (.json)','Telechaje tout done (.json)'],['Mở file dữ liệu','Open data file','Louvri fichye done'],
+['Nhật ký nạp','Import log','Jounal chajman'],['Thời gian','Time','Lè'],['Kết quả','Result','Rezilta'],['Ghi chú','Note','Nòt'],['Đạt','OK','OK'],['Lỗi','Error','Erè'],['Đã lưu','Saved','Anrejistre'],['Bỏ','Remove','Retire'],
+['Tổng tài sản trạm','Station assets file','Fichye byen sit'],['Tổng xuất','Export summary','Rezime soti'],['Thu hồi (Import)','Recovery (Import)','Rekiperasyon (Import)'],['Bổ sung mã chưa gán','Unassigned code fill-in','Ranpli kòd ki pa plase'],['Không nhận ra','Not recognized','Pa rekonèt'],
+['Số quyết định (DC) của kế hoạch – không bắt buộc','Plan decision number (DC) – optional','Nimewo desizyon (DC) plan an – pa obligatwa'],['Gợi ý theo số trạm trùng','Suggestions by matching sites','Sijesyon pa sit ki matche'],['Tổng KH','Plan total','Total plan'],['Không có dữ liệu','No data','Pa gen done'],['không có','none','pa genyen'],
+['Không có','None','Pa genyen'],['Đang hiện','Showing','Ap montre'],['dòng','rows','liy'],['xem thêm','show more','wè plis'],
+/* kiểm tra file */
+['Ngày chốt:','Closing date:','Dat fèmti:'],['dòng · tổng giá trị','rows · total value','liy · valè total'],['Tại trạm:','At sites:','Nan sit:'],['trong đó tổng trạm NAT_TT','incl. hub sites NAT_TT','ladan l sit santral NAT_TT'],['Bỏ qua','Skipped','Sote'],['dòng đã thanh lý','liquidated rows','liy ki likide'],
+['dòng không có mã trạm','rows without site code','liy san kòd sit'],['hàng trong kho, cấp nhân viên','stock in warehouse, issued to staff','stòk nan depo, bay anplwaye'],['Có người quản lý:','Managers:','Manadjè:'],['Không có cột MANAGER_NAME: tab Nhân viên sẽ trống','No MANAGER_NAME column: Staff tab will be empty','Pa gen kolòn MANAGER_NAME: onglè Anplwaye ap vid'],
+['mã trạm chưa có trong danh sách','site codes not in the list','kòd sit ki pa nan lis la'],['Xem tab Mã chưa gán','See Unassigned codes','Gade Kòd ki pa plase'],['lấy theo ngày nhỏ/lớn nhất','from earliest/latest date','dapre premye/dènye dat'],['dòng không đọc được ngày (bỏ qua)','rows with unreadable dates (skipped)','liy ki gen dat pa li (sote)'],
+['Bỏ chuyển kho, mất tài sản, xuất nội bộ, bảo hành','Excluded transfers, losses, internal issues, warranty','Retire transfè, pèt, soti entèn, garanti'],['Thu hồi từ trạm','Recovered from sites','Rekipere nan sit'],['không có mã trạm','no site code','san kòd sit'],
+['Đọc được số quyết định (DC) cho','Decision number (DC) found for','Nimewo desizyon (DC) jwenn pou'],['giá trị (không tính tổng trạm)','of value (excl. hub sites)','valè (san sit santral)'],['kho chưa nhận ra chi nhánh','warehouses without a branch','depo san branch'],
+['mới có đến ngày','only up to day','sèlman jiska jou'],['nạp file đủ tháng sau sẽ thay phần trùng ngày','a full-month file later replaces the overlapping days','yon fichye mwa konplè ap ranplase jou ki double yo'],
+['tủ/trạm có kế hoạch','cabinets/sites planned','kabinè/sit nan plan'],['mã xuất','issue items','atik soti'],['mã thu hồi','recovery items','atik rekiperasyon'],['cột có chữ','columns containing','kolòn ki gen mo'],['mã tủ không có trong danh sách trạm','cabinet codes not in site list','kòd kabinè ki pa nan lis sit'],
+['trạm','sites','sit'],['mã tủ 2G/3G/4G/5G','2G/3G/4G/5G cabinet codes','kòd kabinè 2G/3G/4G/5G'],['trạm lặp dòng (giữ dòng sau)','duplicate site rows (last kept)','sit ki double (dènye a kenbe)'],['trạm có chi nhánh lạ','sites with unknown branch','sit ki gen branch enkoni'],
+['dòng mã tủ → trạm → chi nhánh','cabinet → site → branch rows','liy kabinè → sit → branch'],['mã tủ dính dấu cách/dấu chấm/dấu phẩy','cabinet codes with stray spaces/dots/commas','kòd kabinè ki gen espas/pwen/vigil'],['Tự sửa','Auto-fixed','Korije otomatik'],['mã tủ bị gán 2 chi nhánh','cabinets assigned to 2 branches','kabinè ki gen 2 branch'],
+['mã hợp lệ sẽ được thêm vào danh sách trạm','valid codes will be added to the site list','kòd valab ap ajoute nan lis sit la'],['mã chưa điền chi nhánh (bỏ qua)','codes without branch (skipped)','kòd san branch (sote)'],['dòng định mức','norm rows','liy nòm'],
+/* xuất excel */
+['BÁO CÁO TĂNG GIẢM TÀI SẢN TRẠM – NATCOM','NATCOM STATION ASSET CHANGE REPORT','RAPÒ CHANJMAN BYEN SIT NATCOM'],['Chỉ tiêu','Indicator','Endikatè'],['Tài sản tại trạm kỳ trước','Station assets, previous','Byen sit, anvan'],['Tài sản tại trạm kỳ này','Station assets, current','Byen sit, kounye a'],
+['Xuất ra trạm trong kỳ','Issued to sites in period','Bay sit nan peryòd la'],['Thu hồi trong kỳ','Recovered in period','Rekipere nan peryòd la'],['Chênh lệch chưa giải thích','Unexplained difference','Diferans san esplikasyon'],['Đối soát phiếu','Voucher reconciliation','Verifikasyon bon'],['Đủ phiếu','Complete','Konplè'],['Chưa đủ phiếu','Incomplete','Pa konplè'],
+['Trạm hết tài sản','Emptied sites','Sit vid'],['Trạm tăng ≥','Sites up ≥','Sit ki monte ≥'],['Kho xuất ra trạm','Warehouse issues to sites','Depo ki bay sit'],['Mã trạm/tủ trong phiếu','Site/cabinet code in voucher','Kòd sit/kabinè nan bon'],['Còn thiếu','Missing','Manke'],
+['Kỳ','Period','Peryòd'],['Đơn vị','Unit','Inite'],['Tổng','Total','Total'],['TỔNG','TOTAL','TOTAL'],['Nguồn','Source','Sous'],['SL','Qty','Kant.'],['KH','Plan','Plan'],['CN','Br.','Br.'],['Có','Yes','Wi'],
+['Không tìm thấy','Not found','Pa jwenn'],['chưa xuất','not issued','poko soti'],['xuất','issue','soti'],['thu hồi','recovery','rekiperasyon'],['tăng','up','monte'],['giảm','down','desann'],['Mã','Code','Kòd'],['Ngày nạp','Loaded on','Dat chajman']
+];
+let TRX=null,TRM=null;
+function buildTr(){TRX=null;TRM=null;if(S.lang==='vi')return;const i=S.lang==='en'?1:2;TRM=new Map();const ks=[];
+ for(const r of I18N){if(!r[i])continue;const k=r[0].toLowerCase();if(TRM.has(k))continue;TRM.set(k,r[i]);ks.push(r[0])}
+ ks.sort((a,b)=>b.length-a.length);TRX=new RegExp('(?<![\\p{L}\\p{N}_])('+ks.map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')(?![\\p{L}\\p{N}_])','giu')}
+function trS(s){if(!TRX||s==null||typeof s!=='string')return s;return s.replace(TRX,m=>{const t=TRM.get(m.toLowerCase());if(!t)return m;
+ if(m.length>1&&m===m.toUpperCase()&&m!==m.toLowerCase())return t.toUpperCase();
+ const f=m[0];if(f===f.toUpperCase()&&f!==f.toLowerCase())return t[0].toUpperCase()+t.slice(1);
+ return t.length>1&&t[1]===t[1].toLowerCase()?t[0].toLowerCase()+t.slice(1):t})}
+const TR_ATTR=['placeholder','title','data-tip','aria-label'];
+function trDom(root){if(!TRX||!root)return;const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:n=>n.parentElement&&!n.parentElement.closest('script,style,textarea,.nt')?1:2});const L=[];let n;while((n=w.nextNode()))L.push(n);
+ for(const t of L){const v=trS(t.nodeValue);if(v!==t.nodeValue)t.nodeValue=v}
+ const els=root.querySelectorAll?[root,...root.querySelectorAll('[placeholder],[title],[data-tip],[aria-label]')]:[];
+ for(const e of els)for(const a of TR_ATTR){const v=e.getAttribute&&e.getAttribute(a);if(v){const x=trS(v);if(x!==v)e.setAttribute(a,x)}}}
+const TRMO=new MutationObserver(ms=>{if(!TRX)return;for(const m of ms)for(const n of m.addedNodes){if(n.nodeType===3){const v=trS(n.nodeValue);if(v!==n.nodeValue)n.nodeValue=v}else if(n.nodeType===1)trDom(n)}});
+
+'use strict';
 /* ===== Tài sản trạm Natcom ===== */
 const VER='1.0.0';
-const DEFAULT_API='https://script.google.com/macros/s/AKfycbygcV5MsBdwX3gwoRN9csLZ09_Q9j0rlKtH4oIli6yl9FtmUZGQXuaGeF7mGQF6rWtV/exec';                 // link Apps Script /exec, điền khi đóng gói
+const DEFAULT_API="https://script.google.com/macros/s/AKfycbygcV5MsBdwX3gwoRN9csLZ09_Q9j0rlKtH4oIli6yl9FtmUZGQXuaGeF7mGQF6rWtV/exec";                 // link Apps Script /exec, điền khi đóng gói
 const BRS=['ART','CEN','NOR','NOT','OUE01','OUE02','OUE03','SUD'];
 const ADMIN_HASH='';
 const CFG0={rate:131,thr:5000,excl:['005812'],eq:[['300121','272583','040043','026329'],['300068','301524','268637']],emails:''};
@@ -184,16 +330,16 @@ const addDay=(s,n)=>{const d=new Date(s+'T12:00:00Z');d.setUTCDate(d.getUTCDate(
 const dayDiff=(a,b)=>Math.round((new Date(b+'T12:00:00Z')-new Date(a+'T12:00:00Z'))/864e5);
 const mc=v=>{const s=String(v??'').trim();if(!s)return'';return /^\d+(\.0+)?$/.test(s)?String(Math.round(Number(s))).padStart(6,'0'):s.toUpperCase()};
 const wait=ms=>new Promise(r=>setTimeout(r,ms)),tick=()=>new Promise(r=>setTimeout(r,0));
-const ld=t=>{const e=$('#ld');if(t){e.textContent=t;e.classList.add('on')}else e.classList.remove('on')};
+const ld=t=>{const e=$('#ld');if(t){e.textContent=trS(t);e.classList.add('on')}else e.classList.remove('on')};
 function toast(t,ms=2600){ld(t);clearTimeout(toast.h);toast.h=setTimeout(()=>ld(''),ms)}
 /* ----- định dạng tiền ----- */
-const S={cfg:{...CFG0},unit:'USD',A:'',B:'',br:'',tab:'dash',admin:false,pw:''};
-try{S.unit=localStorage.getItem('tts_unit')||'USD'}catch(e){}
+const S={cfg:{...CFG0},unit:'USD',A:'',B:'',br:'',tab:'dash',admin:false,pw:'',lang:'vi'};
+try{S.unit=localStorage.getItem('tts_unit')||'USD';S.lang=localStorage.getItem('tts_lang')||'vi'}catch(e){}
 const rt=()=>S.unit==='USD'&&S.cfg.rate>0?S.cfg.rate:1;
 const nf0=new Intl.NumberFormat('vi-VN',{maximumFractionDigits:0}),nf1=new Intl.NumberFormat('vi-VN',{maximumFractionDigits:1}),nf2=new Intl.NumberFormat('vi-VN',{maximumFractionDigits:2});
 const F=v=>{const x=v/rt();return Math.abs(x)<10&&x!==0?nf2.format(x):nf0.format(x)};
 const Q=v=>nf2.format(Math.round(v*100)/100);
-function C(v){const x=v/rt(),a=Math.abs(x);return a>=1e9?nf2.format(x/1e9)+' tỷ':a>=1e6?nf2.format(x/1e6)+' tr':a>=1e3?nf1.format(x/1e3)+' N':nf0.format(x)}
+function C(v){const x=v/rt(),a=Math.abs(x),vi=S.lang==='vi';return a>=1e9?nf2.format(x/1e9)+(vi?' tỷ':' B'):a>=1e6?nf2.format(x/1e6)+(vi?' tr':' M'):a>=1e3?nf1.format(x/1e3)+(vi?' N':' K'):nf0.format(x)}
 const sg=(v,f=C)=>`<span class="${v>0.5?'up':v<-0.5?'dn':'mu'}">${v>0.5?'+':''}${f(v)}</span>`;
 const pct=(a,b)=>b?((a-b)/Math.abs(b)*100):null;
 const P=v=>v==null?'':(v>0?'+':'')+nf1.format(v)+'%';
@@ -656,7 +802,7 @@ async function vBr(){const el=$('#p-br');const r=await prep();if(!r){el.innerHTM
 const STF={st:'',q:''};
 async function vSt(){const el=$('#p-st');const r=await prep();if(!r){el.innerHTML=noData();return}
  const sts=[...new Set(r.rows.map(o=>o.st).filter(Boolean))];
- el.innerHTML=`<div class="card"><h3>Trạm <small>${vnd(r.A)} → ${vnd(r.B)}${r.full?'':' · chưa đủ phiếu để đối soát'}</small><span class="r"><select id="stS"><option value="">Mọi trạng thái</option>${sts.map(s=>`<option ${STF.st===s?'selected':''}>${s}</option>`).join('')}</select><input type="search" id="stQ" placeholder="Lọc mã trạm" value="${esc(STF.q)}" style="width:150px"><label class="mu" style="display:flex;gap:4px;align-items:center"><input type="checkbox" id="stA"> Chỉ trạm tăng ≥ ${nf0.format(S.cfg.thr)} USD</label></span></h3><div id="stT"></div></div>`;
+ el.innerHTML=`<div class="card"><h3>Trạm <small>${vnd(r.A)} → ${vnd(r.B)}${r.full?'':' · chưa đủ phiếu để đối soát'}</small><span class="r"><select id="stS"><option value="">Mọi trạng thái</option>${sts.map(s=>`<option value="${s}" ${STF.st===s?'selected':''}>${s}</option>`).join('')}</select><input type="search" id="stQ" placeholder="Lọc mã trạm" value="${esc(STF.q)}" style="width:150px"><label class="mu" style="display:flex;gap:4px;align-items:center"><input type="checkbox" id="stA"> Chỉ trạm tăng ≥ ${nf0.format(S.cfg.thr)} USD</label></span></h3><div id="stT"></div></div>`;
  const draw=()=>{STF.st=$('#stS').value;STF.q=$('#stQ').value.trim().toUpperCase();const a=$('#stA').checked;
   const rows=r.rows.filter(o=>inBr(o.b)&&(!STF.st||o.st===STF.st)&&(!STF.q||o.s.includes(STF.q))&&(!a||usd(o.dv)>=S.cfg.thr));
   const cols=[{h:'Trạm',k:'s',l:1,f:x=>`<b>${esc(x.s)}</b>`},{h:'CN',k:'b',l:1},{h:'Kỳ trước',k:'pv',f:x=>C(x.pv)},{h:'Kỳ này',k:'cv',f:x=>C(x.cv)},{h:'Tăng giảm',k:'dv',f:x=>sg(x.dv),cls:x=>usd(x.dv)>=S.cfg.thr&&x.b!==TT?'redbg':''},{h:'%',v:x=>pct(x.cv,x.pv),f:x=>P(pct(x.cv,x.pv))},{h:'Xuất',k:'ev',f:x=>C(x.ev)},{h:'Thu hồi',k:'wv',f:x=>C(x.wv)},{h:'Chênh lệch phiếu',v:x=>x.gv==null?null:Math.abs(x.gv),f:x=>x.gv==null?'<span class="mu">–</span>':sg(x.gv)},{h:'Trạng thái',k:'st',l:1,f:x=>stTag(x.st)}];
@@ -748,7 +894,7 @@ async function dcBody(){const el=$('#dcB');const dc=DCS.dc;
    <p class="mu" style="margin:8px 0 0">Đã ${verb} = mọi phiếu ${verb} có mã trạm/tủ và mã hàng trùng kế hoạch${plan.from?' từ '+vnd(plan.from):''} (${(t==='x'?PC.X:PC.W).length.toLocaleString('vi-VN')} dòng), không cần ghi số QĐ. % = trung bình % các mã. Mỗi trạm, mỗi mã tối đa 100%; ${verb} vượt kế hoạch bôi đỏ, không cộng thêm.${PP.outside.length?` <b class="dn">${PP.outside.length} trạm ${verb} theo QĐ này nhưng ngoài kế hoạch.</b>`:''}</p></div>
   <div class="card"><h3>Từng mặt hàng</h3>${its.map(it=>hbar(it.n||it.codes[0],it.pct||0,it.ex?'<span class="red">không tính</span>':it.pct==null?'–':nf0.format(it.pct)+'%',`${nf0.format(it.cap)}/${nf0.format(it.pq)}`,{cls:it.ex?'r':'a',tipT:`${it.codes.join(', ')} · KH ${nf0.format(it.pq)} · đã ${verb} ${nf0.format(it.act)}${it.over?' · thừa '+nf0.format(it.over):''}`})+(it.over?`<div class="red" style="font-size:11px;margin:-2px 0 4px 100px">${verb[0].toUpperCase()+verb.slice(1)} thừa ${nf0.format(it.over)}</div>`:'')).join('')}</div>
   <div class="card"><h3>Từng chi nhánh <small>bấm để lọc trạm</small></h3>${bm.map(b=>`<div class="hb c" data-bf="${esc(b.b)}"><b>${esc(b.b)}</b><div class="tr"><i class="a" style="width:${Math.max(.5,b.pct||0)}%"></i></div><span>${b.pct==null?'–':nf0.format(b.pct)+'%'}</span><span>${b.n} trạm</span></div>`).join('')}</div></div><div class="gap"></div>
-  <div class="card"><h3>Từng trạm <small id="dcF"></small><span class="r"><select id="dcSt"><option value="">Mọi trạng thái</option><option>Đủ</option><option>Thiếu</option><option>Chưa ${verb}</option><option value="over">Có ${verb} thừa</option></select></span></h3><div id="dcTT"></div></div>
+  <div class="card"><h3>Từng trạm <small id="dcF"></small><span class="r"><select id="dcSt"><option value="">Mọi trạng thái</option><option value="Đủ">Đủ</option><option value="Thiếu">Thiếu</option><option value="Chưa ${verb}">Chưa ${verb}</option><option value="over">Có ${verb} thừa</option></select></span></h3><div id="dcTT"></div></div>
   ${PP.outside.length||PP.otherV?`<div class="g2"><div class="card"><h3>Trạm ${verb} ngoài kế hoạch <small>${PP.outside.length} trạm</small></h3>${tbl('dco',[{h:'Trạm',k:'s',l:1},{h:'CN',k:'b',l:1},{h:'Giá trị',k:'v',f:x=>C(x.v)}],PP.outside,{click:x=>openStation(x.s),sk:2,h:300})}</div><div class="card"><h3>Mã ${verb} không có trong kế hoạch <small>${C(PP.otherV)}</small></h3>${tbl('dcm',[{h:'Mã',k:0,l:1},{h:'Tên hàng',l:1,v:x=>(D.names[x[0]]||[''])[0],f:x=>esc(((D.names[x[0]]||[''])[0]).slice(0,50))},{h:'Giá trị',k:1,f:x=>C(x[1])}],PP.other,{h:300})}</div></div>`:''}`;
   let bf='';const drawT=()=>{const sv=$('#dcSt').value;const rows=PP.sites.filter(s=>(!bf||s.b===bf)&&(!sv||(sv==='over'?s.over:s.st===sv)));$('#dcF').textContent=(bf?bf+' · ':'')+rows.length+' trạm';
    const cols=[{h:'Trạm',k:'s',l:1,f:x=>`<b>${esc(x.s)}</b>`},{h:'Mã tủ',k:'cab',l:1},{h:'CN',k:'b',l:1},{h:'%',k:'pct',f:x=>x.pct==null?'–':nf0.format(x.pct)+'%',cls:x=>x.pct!=null&&x.pct<100?'':''},{h:'Trạng thái',k:'st',l:1,f:x=>`<span class="tag ${x.st==='Đủ'?'ok':x.st==='Thiếu'?'warn':'err'}">${x.st}</span>`}]
@@ -793,12 +939,12 @@ const by=new Map();for(const s of PX.sites)by.set(s.s,{x:s});if(PW)for(const s o
  const body=[...by.values()].map(({x,w})=>{const s=x||w;const row=[s.cab,s.s,s.b,x&&x.pct!=null?Math.round(x.pct*10)/10:'',x?x.st:''].concat(PW?[w&&w.pct!=null?Math.round(w.pct*10)/10:'',w?w.st:'']:[]);
   its.forEach((it,k)=>{const src=it.dir==='w'?w:x;const q=src?src.q[it.i]:0,a=src?src.a[it.i]:0;tot[k][0]+=q;tot[k][1]+=a;tot[k][2]+=Math.max(0,q-a);row.push(q,a,Math.max(0,q-a))});return row});
  tot.forEach(t=>sum.push(t[0],t[1],t[2]));
- const ws=XLSX.utils.aoa_to_sheet([['KẾ HOẠCH '+dc+' – ĐÃ CẬP NHẬT SỐ XUẤT/THU HỒI TỪ PHIẾU ('+new Date().toLocaleDateString('vi-VN')+')'],['Nguồn: '+(p.name||'')+' · Đã xuất = phiếu có mã trạm/tủ + mã hàng trùng kế hoạch'+(p.from?' từ '+vnd(p.from):'')+' · % tối đa 100% mỗi mã; đã xuất lớn hơn KH là xuất thừa'],head,...body,sum]);
+ const ws=aoaS([['KẾ HOẠCH '+dc+' – ĐÃ CẬP NHẬT SỐ XUẤT/THU HỒI TỪ PHIẾU ('+new Date().toLocaleDateString('vi-VN')+')'],['Nguồn: '+(p.name||'')+' · Đã xuất = phiếu có mã trạm/tủ + mã hàng trùng kế hoạch'+(p.from?' từ '+vnd(p.from):'')+' · % tối đa 100% mỗi mã; đã xuất lớn hơn KH là xuất thừa'],head,...body,sum]);
  ws['!cols']=[{wch:10},{wch:10},{wch:9},{wch:8},{wch:12}].concat(PW?[{wch:9},{wch:12}]:[]).concat(its.flatMap(()=>[{wch:12},{wch:12},{wch:12}]));
  XLSX.utils.book_append_sheet(wb,ws,'Ke hoach cap nhat');
- const out=[['Trạm xuất theo QĐ nhưng ngoài kế hoạch','CN','Giá trị ('+uName()+')']].concat(PX.outside.map(o=>[o.s,o.b,xv(o.v)]));XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(out),'Ngoai ke hoach');
+ const out=[['Trạm xuất theo QĐ nhưng ngoài kế hoạch','CN','Giá trị ('+uName()+')']].concat(PX.outside.map(o=>[o.s,o.b,xv(o.v)]));XLSX.utils.book_append_sheet(wb,aoaS(out),'Ngoai ke hoach');
  const det=[['Ngày','Mã trạm/tủ trong phiếu','Trạm','CN','Mã hàng','Tên hàng','SL','Giá trị ('+uName()+')','Kho','Loại']].concat([...X.map(l=>['Xuất',l]),...W.map(l=>['Thu hồi',l])].map(([t,l])=>{const z=res(l[1],l[7])||{s:'',b:''};return[vnd(l[0]),l[1],z.s,z.b,l[2],(D.names[l[2]]||[''])[0],l[3],xv(l[4]),l[5],t]}));
- XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(det),'Phieu khop ke hoach');
+ XLSX.utils.book_append_sheet(wb,aoaS(det),'Phieu khop ke hoach');
  XLSX.writeFile(wb,'KeHoach_'+dc.replace(/[\/\\]/g,'-')+'_cap_nhat.xlsx')}catch(e){console.error(e);toast('Lỗi: '+e.message,5000)}finally{ld('')}}
 /* ===== THỪA TÀI SẢN ===== */
 async function vNorm(){const el=$('#p-norm');if(!D.norm){el.innerHTML=emptyState('Chưa có file định mức','Tab này so số lượng từng mã hàng tại trạm với định mức (ví dụ 1 tủ BBU có 3 RRU, 3 anten…). File định mức cần các cột: <b>Loại trạm</b> (theo Radio Config trong Danh sách trạm, ví dụ 2G+4G; hoặc <b>Mã trạm</b> cho định mức riêng), <b>Mã hàng</b>, <b>Định mức</b>, có thể thêm Tên hàng.','<button class="btn p" type="button" data-go="tab:imp">Nạp file định mức</button>');return}
@@ -911,7 +1057,8 @@ function adminLogin(then){openMd(`<h3>Đăng nhập admin</h3><div class="fm"><l
   if(!ok){$('#pwE').textContent='Sai mật khẩu';return}S.admin=true;S.pw=pw;try{sessionStorage.setItem('tts_pw',pw)}catch(e){}closeMd();$('#admBtn').textContent='Admin: đang đăng nhập';toast('Đã đăng nhập admin');if(then)then();else show(S.tab)};
  $('#pwOk').onclick=go;$('#pw').onkeydown=e=>{if(e.key==='Enter')go()};setTimeout(()=>$('#pw').focus(),50)}
 /* ===== XUẤT EXCEL ===== */
-function addSheet(wb,name,aoa,w){const ws=XLSX.utils.aoa_to_sheet(aoa);if(w)ws['!cols']=w.map(x=>({wch:x}));XLSX.utils.book_append_sheet(wb,ws,name.slice(0,31))}
+const aoaS=a=>XLSX.utils.aoa_to_sheet(TRX?a.map(r=>r.map(c=>typeof c==='string'?trS(c):c)):a);
+function addSheet(wb,name,aoa,w){if(TRX)aoa=aoa.map(r=>r.map(c=>typeof c==='string'?trS(c):c));const ws=XLSX.utils.aoa_to_sheet(aoa);if(w)ws['!cols']=w.map(x=>({wch:x}));XLSX.utils.book_append_sheet(wb,ws,name.slice(0,31))}
 const xv=v=>Math.round(v/rt()*100)/100;
 async function xlsAll(){ld('Đang tạo file Excel…');try{const wb=XLSX.utils.book_new(),r=await prep(),u=uName();
  if(r){const rows=r.rows.filter(o=>inBr(o.b));const ex=rows.filter(exTT);const s=k=>ex.reduce((a,o)=>a+o[k],0);
@@ -958,7 +1105,9 @@ function gSearch(q){q=q.trim().toUpperCase();if(q.length<2)return[];const o=[];
  for(const k of Object.keys(D.idx.dcs)){if(k.toUpperCase().includes(q)||(D.idx.dcs[k].dept||'').toUpperCase().includes(q))o.push({k:'dc:'+k,h:`<span><b>${esc(k)}</b> ${esc(D.idx.dcs[k].dept||'')}</span><small>Quyết định · ${C(D.idx.dcs[k].xv)}</small>`});if(o.length>=14)break}
  const sb=D.snaps[S.B];if(sb){const seen=new Set();for(const[g]of sb.m||[]){if(!g||seen.has(g))continue;seen.add(g);if(g.toUpperCase().includes(q))o.push({k:'emp:'+g,h:`<span>${esc(g)}</span><small>Nhân viên</small>`});if(o.length>=18)break}}
  return o}
-async function init(){buildEQ();await ST.init();try{S.pw=sessionStorage.getItem('tts_pw')||''}catch(e){}
+async function init(){buildTr();document.documentElement.lang=S.lang;if(TRX){trDom(document.body);TRMO.observe(document.body,{childList:true,subtree:true})}
+ $$('#lang button').forEach(b=>{b.classList.toggle('on',b.dataset.l===S.lang);b.onclick=()=>{try{localStorage.setItem('tts_lang',b.dataset.l)}catch(e){}location.reload()}});
+ buildEQ();await ST.init();try{S.pw=sessionStorage.getItem('tts_pw')||''}catch(e){}
  if(S.pw){if(ST.mode==='local')S.admin=sha256(S.pw)===ADMIN_HASH;else S.admin=true}$('#admBtn').textContent=S.admin?'Admin: đang đăng nhập':'Admin';
  $('#admBtn').onclick=()=>{if(S.admin){S.admin=false;S.pw='';try{sessionStorage.removeItem('tts_pw')}catch(e){}$('#admBtn').textContent='Admin';toast('Đã đăng xuất admin');show(S.tab)}else adminLogin()};
  $('#sync').onclick=async()=>{ld('Đang đồng bộ…');await ST.refresh();await reloadAll();toast(ST.mode==='local'?'Bản offline: chưa có link Google Sheet (vào Nạp dữ liệu → Cài đặt)':ST.online?'Đã đồng bộ':'Không kết nối được Google Sheet',3500)};
