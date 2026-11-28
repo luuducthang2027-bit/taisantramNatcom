@@ -124,6 +124,19 @@ td.red,span.red{color:var(--bad);font-weight:600}td.redbg{background:var(--bad-s
 .lg{padding:8px 10px}.lg div{display:none}.menu{display:flex;overflow-x:auto;padding:6px;gap:2px}.menu a{flex:none}.menu h6{display:none}.menu a{white-space:nowrap}.sv{display:none}
 header{top:52px}.srch input{width:160px}main{padding:10px}.g2,.g3{grid-template-columns:minmax(0,1fr)}.hb{grid-template-columns:70px minmax(0,1fr) 76px 64px}}
 @media print{.nv,header .fl,.btn{display:none}main{max-width:none}}
+
+/* báo cáo điều hành */
+.cst{display:flex;height:16px;border-radius:5px;overflow:hidden;flex:1;background:var(--line2)}.cst i{display:block;height:100%}.bcc .cst{height:10px;margin:8px 0;flex:none}
+.csb{display:flex;align-items:center;gap:10px;margin:7px 0;cursor:pointer}.csb b{width:58px}.csb span{width:120px;font-size:12px;color:var(--mut);text-align:right}
+.clg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:11.5px;color:var(--mut);margin-top:10px}.clg i,.cdot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.rpb{position:relative;height:15px;background:var(--line2);border-radius:8px;min-width:100px}.rpb i{position:absolute;left:0;top:0;bottom:0;border-radius:8px}.rpb span{position:absolute;right:6px;top:0;font-size:11px;font-weight:600;line-height:15px}
+.bcs{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}.bcc{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--card,#fff)}.bcc>div:first-child{display:flex;justify-content:space-between}.bb{display:flex;gap:6px;flex-wrap:wrap}
+.bcbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.bcw{display:grid;grid-template-columns:340px minmax(0,1fr);gap:12px}.bcf label{display:block;font-size:12px;color:var(--mut);margin:7px 0 0}.bcf input,.bcf textarea{display:block;width:100%;box-sizing:border-box;margin-top:3px;font:12.5px/1.4 inherit;border:1px solid var(--line);border-radius:6px;padding:6px}
+.bcr{background:#E9EBEF;border-radius:10px;padding:10px;min-width:0}.bct{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px}.bct button{border:1px solid var(--line);background:#fff;border-radius:6px;padding:3px 8px;font-size:12px;cursor:pointer}
+.bcv{max-height:78vh;overflow:auto;position:relative}.bcp{background:#fff;color:#000;max-width:794px;margin:0 auto;padding:40px 50px;box-shadow:0 2px 12px rgba(0,0,0,.15);font:13pt/1.45 'Times New Roman',serif}
+.bcp table[border="1"] td,.bcp table[border="1"] th{border:1px solid #555}
+@media(max-width:900px){.bcw{grid-template-columns:1fr}.bcp{padding:20px 16px;font-size:11pt}}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head><body>
@@ -158,6 +171,7 @@ header{top:52px}.srch input{width:160px}main{padding:10px}.g2,.g3{grid-template-
   <section class="pg" id="p-plan"></section>
   <section class="pg" id="p-norm"></section>
   <section class="pg" id="p-gk"></section>
+  <section class="pg" id="p-bc"></section>
   <section class="pg" id="p-un"></section>
   <section class="pg" id="p-imp"></section>
  </main>
@@ -171,6 +185,12 @@ header{top:52px}.srch input{width:160px}main{padding:10px}.g2,.g3{grid-template-
 const I18N=[
 
 /* giao khoán */
+['Báo cáo điều hành','Executive report','Rapò egzekitif'],['Phân tích nguyên nhân','Cause analysis','Analiz koz'],['Tờ trình Tổng Giám đốc','Report to the CEO','Rapò bay Direktè Jeneral'],['Gửi chi nhánh','Send to branches','Voye bay branch yo'],
+['Báo cáo điều hành chỉ dành cho admin','Executive report is for admins only','Rapò egzekitif la se pou admin sèlman'],['Tỷ lệ sai toàn mạng','Network error rate','To erè rezo a'],['Đúng giao khoán','Matches assignment','Matche asiyasyon'],['Giá trị đứng tên sai','Value under wrong holder','Valè sou move non'],['Nguyên nhân chính','Main cause','Koz prensipal'],
+['Tỷ lệ sai và cơ cấu nguyên nhân theo chi nhánh','Error rate and causes by branch','To erè ak koz pa branch'],['Nguyên nhân sai toàn mạng','Causes across the network','Koz erè nan tout rezo a'],['Số liệu từng chi nhánh','Figures by branch','Chif pa branch'],['Người đứng tên tập trung','Concentrated holders','Moun ki kenbe anpil sit'],
+['Việc cần làm','Action','Aksyon'],['Tỷ lệ sai','Error rate','To erè'],['Nguyên nhân','Cause','Koz'],['Tải tờ trình (.doc)','Download report (.doc)','Telechaje rapò (.doc)'],['Tải bảng số liệu (.xlsx)','Download data (.xlsx)','Telechaje done (.xlsx)'],['Lập lại toàn bộ lời văn','Regenerate all text','Rekreye tout tèks'],
+['Thông tin tờ trình','Report details','Detay rapò'],['Lời văn','Text','Tèks'],['File gửi CN (.xlsx)','Branch file (.xlsx)','Fichye branch (.xlsx)'],['Thông báo (.doc)','Notice (.doc)','Avi (.doc)'],['Tải tất cả (1 file, mỗi CN 1 sheet)','Download all (1 file, one sheet per branch)','Telechaje tout (1 fichye, yon fèy pa branch)'],['Hạn gửi kết quả','Reply deadline','Dat limit repons'],
+['Tài sản đứng tên tập trung (1 người giữ nhiều trạm không được giao)','Assets concentrated on one holder (many non-assigned sites)','Byen konsantre sou yon moun (anpil sit ki pa asiyen)'],['Nhiều người cùng đứng tên 1 trạm','Several holders at one site','Plizyè moun nan yon sit'],['NV giao khoán chưa đứng tên tài sản nào','Assigned staff holds no assets','Anplwaye asiyen pa gen byen'],['Đổi giao khoán nhưng chưa chuyển tài sản','Assignment changed, assets not transferred','Asiyasyon chanje, byen pa transfere'],['Người đứng tên không còn trong giao khoán','Holder no longer in assignment','Moun nan pa nan asiyasyon ankò'],['Trạm có tài sản nhưng chưa giao khoán','Site with assets not assigned','Sit ki gen byen men pa asiyen'],
 ['Người đứng tên tài sản so với giao khoán','Asset holder vs. site assignment','Moun ki gen byen yo sou non l kont asiyasyon sit'],['So giao khoán với người đứng tên tài sản','Assignment vs. asset holder','Asiyasyon kont moun ki gen byen yo'],
 ['Cảnh báo lệch giao khoán','Assignment mismatch alert','Alèt diferans asiyasyon'],['Khớp giao khoán','Assignment matches','Asiyasyon an matche'],['Không có trạm lệch người đứng tên.','No site with a different holder.','Pa gen sit ki gen lòt moun sou non l.'],
 ['trạm người đứng tên tài sản khác người được giao','sites where the asset holder differs from the assigned staff','sit kote moun ki gen byen an pa menm ak moun ki asiyen an'],['trạm có thêm người khác đứng tên','sites with other holders too','sit ki gen lòt moun tou'],
@@ -1127,6 +1147,138 @@ function xlsGk(G){const wb=XLSX.utils.book_new(),u=uName(),L=GKST;
 function gkAlert(sb){if(!D.gk||!sb)return'';const G=gkCalc(sb);if(!G)return'';const d=G.rows.filter(r=>r.st==='diff'||r.st==='nohold'),m=G.rows.filter(r=>r.st==='multi');if(!d.length&&!m.length)return'';
  return`<div class="al warn"><b class="t wa">Giao khoán: ${d.length} trạm khác người đứng tên, ${m.length} trạm nhiều người</b>${d.sort((a,b)=>b.ov-a.ov).slice(0,5).map(r=>`<span class="chip" data-go="st:${esc(r.s)}" data-tip="${esc('Giao: '+r.gk+' · Đứng tên: '+r.hold)}">${esc(r.s)} <b class="dn">${C(r.ov)}</b></span>`).join('')}<a href="#" data-go="tab:gk" class="mu">xem tab Giao khoán</a></div>`}
 
+/* ===== BÁO CÁO ĐIỀU HÀNH (chỉ admin) ===== */
+const CAUSE=[['C2','Tài sản đứng tên tập trung (1 người giữ nhiều trạm không được giao)','#E0533D','Chuyển tài sản về nhân viên giao khoán từng trạm'],
+ ['C5','Nhiều người cùng đứng tên 1 trạm','#F7941D','Gom tài sản về 1 người giao khoán'],
+ ['C1','NV giao khoán chưa đứng tên tài sản nào','#8E5BD0','Cập nhật tên NV trên hệ thống, bàn giao tài sản'],
+ ['C4','Đổi giao khoán nhưng chưa chuyển tài sản','#2F80ED','Lập biên bản bàn giao giữa 2 nhân viên'],
+ ['C3','Người đứng tên không còn trong giao khoán','#5E6779','Thu hồi, bàn giao lại cho NV giao khoán'],
+ ['C6','Trạm có tài sản nhưng chưa giao khoán','#13A37F','Bổ sung trạm vào giao khoán']];
+const CMAP=new Map(CAUSE.map(c=>[c[0],c]));
+const bcThr=()=>+S.cfg.gkThr>0?+S.cfg.gkThr:20;
+/* xếp mỗi trạm sai vào 1 nguyên nhân */
+function gkCause(G){if(!G)return null;const thr=bcThr();if(G.cz&&G.cz.thr===thr)return G.cz;
+ const bySite=new Map(G.rows.map(r=>[r.s,r])),linked=new Set(G.emps.map(e=>e.link).filter(Boolean));
+ const nx=new Map(),hb=new Map();for(const[s,hs]of G.MG){const r=bySite.get(s);const L=r?r.link.split(', '):[];for(const[g,v]of hs){if(L.includes(g))continue;const o=nx.get(g)||{g,n:0,v:0,b:{}};o.n++;o.v+=v;const b=G.SBR.get(s)||'?';o.b[b]=(o.b[b]||0)+1;nx.set(g,o)}}
+ const all=[];for(const r of G.rows.concat(G.out)){let c=null;
+  if(r.st==='multi')c='C5';else if(r.st==='out')c='C6';else if(r.st==='diff'||r.st==='nohold'){const h=r.hs[0][0];if((nx.get(h)||{n:0}).n>=thr)c='C2';else if(r.st==='nohold')c='C1';else c=linked.has(h)?'C4':'C3'}
+  r.c=c;if(c)all.push(r)}
+ const B={};for(const b of BRS)B[b]={b,gk:0,ok:0,bad:0,v:0,tv:0,c:{},h:{},rows:[]};
+ for(const r of G.rows.concat(G.out)){const o=B[r.b];if(!o)continue;if(r.st!=='out'){o.gk++;o.tv+=r.tv}if(r.st==='ok')o.ok++;if(!r.c)continue;o.rows.push(r);const x=o.c[r.c]||(o.c[r.c]=[0,0]);x[0]++;x[1]+=r.ov;if(r.st!=='out'){o.bad++;o.v+=r.ov}const h=r.hs[0]&&r.hs[0][0];if(h&&r.c!=='C1')o.h[h]=(o.h[h]||0)+1}
+ const T={gk:0,ok:0,bad:0,v:0,tv:0,c:{}};for(const o of Object.values(B)){for(const k of['gk','ok','bad','v','tv'])T[k]+=o[k];for(const k in o.c){const x=T.c[k]||(T.c[k]=[0,0]);x[0]+=o.c[k][0];x[1]+=o.c[k][1]}}
+ const conc=[...nx.values()].filter(o=>o.n>=thr).sort((a,b)=>b.n-a.n);
+ G.cz={thr,B,T,conc,all,nx};return G.cz}
+const rate=o=>o.gk?o.bad/o.gk*100:0;
+const BCF={t:'pt'};
+const bcStack=o=>{const n=Object.values(o.c).reduce((a,x)=>a+x[0],0)||1;return`<div class="cst">${CAUSE.filter(c=>o.c[c[0]]).map(c=>`<i style="width:${o.c[c[0]][0]/n*100}%;background:${c[2]}" data-tip="${esc(c[1]+': '+o.c[c[0]][0]+' trạm')}"></i>`).join('')}</div>`};
+const rcol=p=>p>=50?'#E0533D':p>=30?'#F7941D':'#13A37F';
+async function vBc(){const el=$('#p-bc');
+ if(!S.admin){el.innerHTML=emptyState('Báo cáo điều hành chỉ dành cho admin','Đăng nhập admin để xem phân tích nguyên nhân, lập tờ trình và tải file gửi chi nhánh.','<button class="btn p" type="button" id="bcLg">Đăng nhập admin</button>');$('#bcLg').onclick=()=>adminLogin(()=>vBc());return}
+ if(!D.gk){el.innerHTML=emptyState('Chưa có file giao khoán','Báo cáo điều hành phân tích nguyên nhân sai giao khoán, cần nạp file giao khoán trạm trước.','<button class="btn p" type="button" data-go="tab:imp">Nạp file giao khoán</button>');return}
+ const sb=await loadSnap(S.B);if(!sb){el.innerHTML=noData();return}ld('Đang lập báo cáo…');const G=gkCalc(sb),Z=gkCause(G);ld('');
+ el.innerHTML=`<div class="sub"><button type="button" data-t="pt" class="${BCF.t==='pt'?'on':''}">1. Phân tích nguyên nhân</button><button type="button" data-t="tt" class="${BCF.t==='tt'?'on':''}">2. Tờ trình Tổng Giám đốc</button><button type="button" data-t="cn" class="${BCF.t==='cn'?'on':''}">3. Gửi chi nhánh</button></div><div id="bcB"></div>`;
+ $$('#p-bc .sub button').forEach(b=>b.onclick=()=>{BCF.t=b.dataset.t;vBc()});
+ if(BCF.t==='pt')bcPt(G,Z);else if(BCF.t==='tt')await bcTt(G,Z);else bcCn(G,Z);flushFigs()}
+function bcPt(G,Z){const T=Z.T,B=Object.values(Z.B).filter(o=>o.gk||o.rows.length).sort((a,b)=>rate(b)-rate(a)),call=Object.values(T.c).reduce((a,x)=>a+x[0],0)||1,top=CAUSE.filter(c=>T.c[c[0]]).sort((a,b)=>T.c[b[0]][0]-T.c[a[0]][0])[0];
+ $('#bcB').innerHTML=`<div class="k">${kpi('Trạm giao khoán',T.gk,G.emps.length+' nhân viên','o')}${kpi('Đúng giao khoán',T.ok,T.gk?nf0.format(T.ok/T.gk*100)+'%':'','g')}${kpi('Tỷ lệ sai toàn mạng',nf0.format(rate(T))+'%',T.bad+' trạm lệch','w')}${kpi('Giá trị đứng tên sai',C(T.v),T.tv?nf0.format(T.v/T.tv*100)+'% tài sản trạm giao khoán':'','w')}${kpi('Nguyên nhân chính',top?esc(top[1].split(' (')[0]):'–',top?T.c[top[0]][0]+' trạm · '+nf0.format(T.c[top[0]][0]/call*100)+'% số lỗi':'')}</div>
+ <div class="g2"><div class="card"><h3>Tỷ lệ sai và cơ cấu nguyên nhân theo chi nhánh <small>xếp từ sai nhiều nhất · bấm để xem trạm</small></h3>${B.map(o=>`<div class="csb c" data-bcb="${o.b}"><b>${o.b}</b>${bcStack(o)}<span>${o.bad} trạm · ${nf0.format(rate(o))}%</span></div>`).join('')}
+  <div class="clg">${CAUSE.map(c=>`<span><i style="background:${c[2]}"></i>${c[0]} ${c[1]}</span>`).join('')}</div></div>
+ <div class="card"><h3>Nguyên nhân sai toàn mạng <span class="r mu" style="font-weight:400">Ngưỡng "tập trung" <input type="number" id="bcThr" value="${bcThr()}" min="2" style="width:56px"> trạm</span></h3>${tbl('bcc',[{h:'Nguyên nhân',k:1,l:1,f:x=>`<i class="cdot" style="background:${x[2]}"></i>${x[0]} ${esc(x[1])}`},{h:'Số trạm',v:x=>(T.c[x[0]]||[0])[0],f:x=>(T.c[x[0]]||[''])[0]},{h:'Tỷ lệ',v:x=>(T.c[x[0]]||[0])[0]/call,f:x=>nf0.format((T.c[x[0]]||[0])[0]/call*100)+'%'},{h:'Giá trị',v:x=>(T.c[x[0]]||[0,0])[1],f:x=>C((T.c[x[0]]||[0,0])[1])},{h:'Việc cần làm',k:3,l:1}],CAUSE,{sk:1})}</div></div><div class="gap"></div>
+ <div class="card"><h3>Số liệu từng chi nhánh <small>bấm dòng để xem danh sách trạm sai theo nguyên nhân</small></h3>${tbl('bcb',[{h:'CN',k:'b',l:1,f:x=>`<b>${x.b}</b>`},{h:'Trạm GK',k:'gk'},{h:'Đúng',k:'ok'},{h:'Sai',k:'bad',f:x=>`<b class="${rate(x)>=50?'red':''}">${x.bad}</b>`},{h:'Tỷ lệ sai',v:rate,f:x=>`<div class="rpb"><i style="width:${rate(x)}%;background:${rcol(rate(x))}"></i><span>${nf0.format(rate(x))}%</span></div>`},{h:'Giá trị sai',k:'v',f:x=>C(x.v)},...CAUSE.map(c=>({h:`<i class="cdot" style="background:${c[2]}"></i>${c[0]}`,t:c[1],v:x=>(x.c[c[0]]||[0])[0],f:x=>(x.c[c[0]]||[''])[0]})),{h:'Người đứng tên nhiều trạm sai nhất',l:1,v:x=>{const h=Object.entries(x.h).sort((a,b)=>b[1]-a[1])[0];return h?h[0]:''},f:x=>{const h=Object.entries(x.h).sort((a,b)=>b[1]-a[1])[0];return h?`${esc(h[0])} <span class="mu">(${h[1]} trạm)</span>`:''}}],B,{click:x=>bcBr(x.b),sk:4,
+  foot:`<td class="l"><b>Toàn mạng</b></td><td><b>${T.gk}</b></td><td><b>${T.ok}</b></td><td><b class="red">${T.bad}</b></td><td><b>${nf0.format(rate(T))}%</b></td><td><b>${C(T.v)}</b></td>${CAUSE.map(c=>`<td><b>${(T.c[c[0]]||[''])[0]}</b></td>`).join('')}<td></td>`})}
+ <p class="mu" style="margin:6px 0 0;font-size:12px">${CAUSE.map(c=>c[0]+' '+c[1].split(' (')[0].toLowerCase()).join(' · ')}. C1–C4 xét người đứng tên nhiều nhất tại trạm; người này giữ từ ${bcThr()} trạm không được giao trở lên thì xếp C2.</p></div><div class="gap"></div>
+ <div class="card"><h3>Người đứng tên tập trung <small>giữ tài sản từ ${bcThr()} trạm không được giao khoán</small></h3>${tbl('bch',[{h:'Người đứng tên',k:'g',l:1},{h:'Chi nhánh',l:1,v:x=>Object.keys(x.b).join(', '),f:x=>esc(Object.entries(x.b).sort((a,b)=>b[1]-a[1]).map(([b,n])=>b+' '+n).join(', '))},{h:'Số trạm không được giao',k:'n'},{h:'Giá trị',k:'v',f:x=>C(x.v)},{h:'Có trong giao khoán',l:1,v:x=>G.emps.some(e=>e.link===x.g)?1:0,f:x=>G.emps.some(e=>e.link===x.g)?'<span class="tag acc">Có</span>':'<span class="tag warn">Không</span>'}],Z.conc,{click:x=>openEmp(x.g),sk:2,h:360})}</div>`;
+ $$('[data-bcb]').forEach(d=>d.onclick=()=>bcBr(d.dataset.bcb));
+ $('#bcThr').onchange=async e=>{const v=Math.max(2,+e.target.value||20);S.cfg.gkThr=v;G.cz=null;try{await ST.set('cfg',S.cfg)}catch(x){}vBc()}}
+function bcBr(b){const sb=D.snaps[S.B];const G=gkCalc(sb),Z=gkCause(G),o=Z.B[b];if(!o)return;
+ openDr(`<h2>Chi nhánh ${esc(b)} <small class="mu">${o.bad} trạm sai / ${o.gk} trạm giao khoán · ${nf0.format(rate(o))}%</small></h2><div style="margin:0 0 10px;display:flex;gap:8px"><button class="btn p s" type="button" id="bcbX">Tải file gửi chi nhánh (.xlsx)</button><button class="btn s" type="button" id="bcbW">Thông báo (.doc)</button></div>
+ <div class="k">${CAUSE.filter(c=>o.c[c[0]]).map(c=>kpi(c[0]+' '+c[1].split(' (')[0],o.c[c[0]][0],C(o.c[c[0]][1]))).join('')}</div>
+ <div class="card"><h3>Trạm sai</h3>${tbl('bcd',[{h:'Trạm',k:'s',l:1},{h:'Nguyên nhân',l:1,k:'c',f:x=>`<i class="cdot" style="background:${CMAP.get(x.c)[2]}"></i>${x.c}`,t:'Di chuột lên mã để xem'},{h:'Giao khoán cho',k:'gk',l:1,f:x=>esc(x.gk||'–')},{h:'Đang đứng tên',k:'hold',l:1,f:x=>x.hs.map(([g,v])=>`${esc(g)} <span class="mu">${C(v)}</span>`).join('<br>')},{h:'Giá trị sai',k:'ov',f:x=>C(x.ov)},{h:'Việc cần làm',l:1,v:x=>x.c,f:x=>esc(CMAP.get(x.c)[3])}],o.rows,{click:x=>openStation(x.s),sk:4,h:520})}</div>`);
+ $('#bcbX').onclick=()=>bcXlsBr(b);$('#bcbW').onclick=()=>bcDocBr(b)}
+/* ---- file gửi chi nhánh ---- */
+function bcBrAoa(b,Z,G){const o=Z.B[b],u=uName(),code=n=>((G.emps.find(e=>e.g===n)||{}).code||'');const han=bcV('han');
+ const info=[['THÔNG BÁO RÀ SOÁT TÀI SẢN TRẠM THEO GIAO KHOÁN – CHI NHÁNH '+b],['Phòng Quản lý tài sản · số liệu tài sản chốt '+vnd(S.B)+' · file giao khoán '+(D.gk.file||'')],[],
+  ['Trạm giao khoán',o.gk],['Trạm đúng',o.ok],['Trạm sai',o.bad],['Tỷ lệ sai',Math.round(rate(o)*10)/10+'%'],['Giá trị đứng tên sai ('+u+')',xv(o.v)],[],['Nguyên nhân','Số trạm','Giá trị ('+u+')','Việc cần làm']].concat(CAUSE.filter(c=>o.c[c[0]]).map(c=>[c[0]+' '+c[1],o.c[c[0]][0],xv(o.c[c[0]][1]),c[3]])).concat([[],['Yêu cầu: chi nhánh xử lý từng trạm ở sheet Tram_sai, điền cột "Kết quả xử lý" và "Ngày hoàn thành", gửi lại Phòng QLTS'+(han?' trước ngày '+han:'')+'.']]);
+ const det=[['STT','Trạm','Nguyên nhân','Mô tả nguyên nhân','Giao khoán cho','Mã NV','Đang đứng tên tài sản ('+u+')','Giá trị sai ('+u+')','Tổng tài sản trạm ('+u+')','Việc cần làm','Kết quả xử lý (CN điền)','Ngày hoàn thành','Ghi chú']].concat(o.rows.sort((a,b)=>a.c<b.c?-1:a.c>b.c?1:b.ov-a.ov).map((r,i)=>[i+1,r.s,r.c,CMAP.get(r.c)[1],r.gk,r.gk.split(', ').map(code).filter(Boolean).join(', '),r.hs.map(([g,v])=>g+' ('+xv(v)+')').join('; '),xv(r.ov),xv(r.tv),CMAP.get(r.c)[3],'','','']));
+ return{info,det}}
+function bcXlsBr(b){const sb=D.snaps[S.B],G=gkCalc(sb),Z=gkCause(G),{info,det}=bcBrAoa(b,Z,G),wb=XLSX.utils.book_new();addSheet(wb,'Thong_bao',info,[48,12,16,46]);addSheet(wb,'Tram_sai',det,[5,12,8,40,26,10,46,14,14,40,30,14,20]);XLSX.writeFile(wb,'GiaoKhoan_'+b+'_'+(S.B||'')+'.xlsx')}
+function bcXlsAll(){const sb=D.snaps[S.B],G=gkCalc(sb),Z=gkCause(G),wb=XLSX.utils.book_new();const T=[['Chi nhánh','Trạm GK','Đúng','Sai','Tỷ lệ sai %','Giá trị sai ('+uName()+')',...CAUSE.map(c=>c[0]+' '+c[1])]];
+ for(const b of BRS){const o=Z.B[b];if(!o.gk&&!o.rows.length)continue;T.push([b,o.gk,o.ok,o.bad,Math.round(rate(o)*10)/10,xv(o.v),...CAUSE.map(c=>(o.c[c[0]]||[0])[0])])}addSheet(wb,'Tong_hop',T,[10,8,8,8,10,14]);
+ for(const b of BRS){const o=Z.B[b];if(!o.rows.length)continue;addSheet(wb,b,bcBrAoa(b,Z,G).det,[5,12,8,40,26,10,46,14,14,40,30,14,20])}XLSX.writeFile(wb,'GiaoKhoan_Tat_ca_chi_nhanh_'+(S.B||'')+'.xlsx')}
+function bcCn(G,Z){const B=Object.values(Z.B).filter(o=>o.gk||o.rows.length).sort((a,b)=>rate(b)-rate(a));
+ $('#bcB').innerHTML=`<div class="card"><h3>Gửi chi nhánh <small>mỗi chi nhánh: file Excel danh sách trạm sai, nguyên nhân, việc cần làm, cột "Kết quả xử lý" để chi nhánh điền gửi lại; kèm thông báo Word</small><span class="r"><label class="mu" style="font-weight:400">Hạn gửi kết quả <input type="text" id="bcHan" value="${esc(bcV('han'))}" style="width:110px"></label><button class="btn s p" type="button" id="bcAll">Tải tất cả (1 file, mỗi CN 1 sheet)</button></span></h3>
+ <div class="bcs">${B.map(o=>`<div class="bcc"><div><b>${o.b}</b><span class="tag ${rate(o)>=50?'err':rate(o)>=30?'warn':'ok'}">sai ${nf0.format(rate(o))}%</span></div><small class="mu">${o.bad} trạm sai / ${o.gk} · ${C(o.v)}</small>${bcStack(o)}<div class="bb"><button class="btn s p" type="button" data-bx="${o.b}">File gửi CN (.xlsx)</button><button class="btn s" type="button" data-bw="${o.b}">Thông báo (.doc)</button><button class="btn s" type="button" data-bv="${o.b}">Xem</button></div></div>`).join('')}</div></div>`;
+ $('#bcAll').onclick=bcXlsAll;$('#bcHan').onchange=e=>{BCK.han=e.target.value;bcSave()};
+ $$('[data-bx]').forEach(x=>x.onclick=()=>bcXlsBr(x.dataset.bx));$$('[data-bw]').forEach(x=>x.onclick=()=>bcDocBr(x.dataset.bw));$$('[data-bv]').forEach(x=>x.onclick=()=>bcBr(x.dataset.bv))}
+/* ---- tờ trình ---- */
+let BCK=(()=>{try{return JSON.parse(localStorage.getItem('tts_bc')||'{}')}catch(e){return{}}})(),BCD=null;
+const bcSave=()=>{try{localStorage.setItem('tts_bc',JSON.stringify(BCK))}catch(e){}};
+const bcV=k=>BCK[k]!=null&&BCK[k]!==''?BCK[k]:(BCD&&BCD.def[k]!=null?BCD.def[k]:k==='han'?bcHan():'');
+const bcHan=()=>{const d=new Date();d.setDate(d.getDate()+18);return d.toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'})};
+const fmU=v=>nf0.format(xv(v)),fmM=v=>nf2.format(xv(v)/1e6);
+async function bcData(G,Z){const sa=S.A?D.idx.snaps.find(s=>s.d===S.A):null,sbI=D.idx.snaps.find(s=>s.d===S.B)||{br:{},t:0},u=uName(),T=Z.T;const r=await prep();const MG=stMgr(await loadSnap(S.B));
+ const Tb={};const t1=BRS.map(b=>{const a=sa?(sa.br[b]||0):0,c=sbI.br[b]||0,o=Z.B[b];return[b,sa?fmM(a):'–',fmM(c),sa?(c-a>=0?'+':'')+fmM(c-a):'–',o.gk?nf0.format(rate(o))+'%':'–']});
+ const ta=sa?BRS.reduce((x,b)=>x+(sa.br[b]||0),0):0,tb=BRS.reduce((x,b)=>x+(sbI.br[b]||0),0);
+ Tb.t1={h:['Chi nhánh',sa?vnd(S.A):'Kỳ trước',vnd(S.B),'Tăng giảm','Tỷ lệ sai GK'],r:t1,t:['Cộng',sa?fmM(ta):'–',fmM(tb),sa?(tb-ta>=0?'+':'')+fmM(tb-ta):'–',nf0.format(rate(T))+'%'],u:'triệu '+u};
+ const al=r&&r.sa?r.alerts:[];Tb.t2={h:['Trạm','Chi nhánh','Người quản lý','Kỳ trước','Kỳ này','Tăng'],r:al.slice(0,10).map(o=>[o.s,o.b,mgr1(MG,o.s),fmU(o.pv),fmU(o.cv),'+'+fmU(o.dv)]),note:r&&r.sa?'Không có trạm tăng vượt ngưỡng.':'Chưa có kỳ trước để so sánh.',u};
+ const pl=[];for(const dc of D.idx.plans){const c=await planCalc(dc);if(!c)continue;const p=c.PX;pl.push([dc,p.n,p.done,p.part,p.none,p.total==null?'–':nf0.format(p.total)+'%',c.PW&&c.PW.total!=null?nf0.format(c.PW.total)+'%':'–'])}
+ Tb.t3={h:['Quyết định','Trạm KH','Đủ','Thiếu','Chưa xuất','% xuất','% thu hồi'],r:pl,note:'Chưa có kế hoạch nào được nạp.'};
+ const B=BRS.map(b=>Z.B[b]).filter(o=>o.gk||o.rows.length);
+ Tb.t4={h:['Chi nhánh','Trạm GK','Đúng','Sai','Tỷ lệ sai',...CAUSE.map(c=>c[0]),'Giá trị sai'],r:B.map(o=>[o.b,o.gk,o.ok,o.bad,nf0.format(rate(o))+'%',...CAUSE.map(c=>(o.c[c[0]]||[''])[0]),fmU(o.v)]),t:['Toàn mạng',T.gk,T.ok,T.bad,nf0.format(rate(T))+'%',...CAUSE.map(c=>(T.c[c[0]]||[''])[0]),fmU(T.v)],u};
+ const call=Object.values(T.c).reduce((a,x)=>a+x[0],0)||1;Tb.t5={h:['Mã','Nguyên nhân','Số trạm','Tỷ lệ','Giá trị','Việc cần làm'],r:CAUSE.filter(c=>T.c[c[0]]).sort((a,b)=>T.c[b[0]][0]-T.c[a[0]][0]).map(c=>[c[0],c[1],T.c[c[0]][0],nf0.format(T.c[c[0]][0]/call*100)+'%',fmU(T.c[c[0]][1]),c[3]]),u,lc:[1,5]};
+ Tb.t6={h:['Người đứng tên','Chi nhánh','Số trạm không được giao','Giá trị'],r:Z.conc.slice(0,10).map(o=>[o.g,Object.entries(o.b).sort((a,b)=>b[1]-a[1]).map(([b,n])=>b+' '+n).join(', '),o.n,fmU(o.v)]),u,lc:[1]};
+ /* lời văn */
+ const ev=[],sol=[],bs=[...B].sort((a,b)=>rate(b)-rate(a)),inc=sa?BRS.map(b=>[b,(sbI.br[b]||0)-(sa.br[b]||0)]).sort((a,b)=>b[1]-a[1]):[];
+ ev.push(`Tài sản tại trạm ngày ${vnd(S.B)} là ${fmM(tb)} triệu ${u}${sa?`, ${tb>=ta?'tăng':'giảm'} ${fmM(Math.abs(tb-ta))} triệu ${u} so với ngày ${vnd(S.A)}; tăng nhiều nhất ${inc.slice(0,2).map(([b,v])=>b+' (+'+fmM(v)+' tr)').join(', ')}`:''}.`);
+ if(r&&r.sa)ev.push(`${al.length} trạm tăng từ ${nf0.format(S.cfg.thr)} USD trở lên${al.length?', lớn nhất '+al.slice(0,3).map(o=>o.s+' (+'+fmU(o.dv)+')').join(', '):''}; đề nghị chi nhánh giải trình các trạm này.`);
+ for(const x of pl)ev.push(`Quyết định ${x[0]}: xuất đạt ${x[5]} (${x[2]}/${x[1]} trạm đủ, ${x[4]} trạm chưa xuất)${x[6]!=='–'?', thu hồi đạt '+x[6]:''}.`);
+ ev.push(`Đối soát giao khoán: chỉ ${T.ok}/${T.gk} trạm (${nf0.format(T.gk?T.ok/T.gk*100:0)}%) đúng nhân viên giao khoán đứng tên tài sản; ${T.bad} trạm sai (${nf0.format(rate(T))}%), giá trị tài sản đứng tên sai ${fmM(T.v)} triệu ${u}.`);
+ const c1=Tb.t5.r[0];if(c1)ev.push(`Nguyên nhân chính: ${c1[1].toLowerCase()} – ${c1[2]} trạm (${c1[3]} số lỗi)${Z.conc.length?', tập trung ở '+Z.conc.slice(0,4).map(o=>o.g+' ('+o.n+' trạm)').join(', '):''}.`);
+ const bad=bs.filter(o=>rate(o)>=50),good=bs.filter(o=>o.gk&&rate(o)<30);if(bad.length)ev.push(`Chi nhánh sai nhiều: ${bad.map(o=>o.b+' '+nf0.format(rate(o))+'%').join(', ')}.`);if(good.length)ev.push(`Chi nhánh làm tốt: ${good.map(o=>o.b+' '+nf0.format(rate(o))+'%').join(', ')}.`);
+ for(const o of bs){if(!o.rows.length)continue;const parts=[];const h=Object.entries(o.h).sort((a,b)=>b[1]-a[1]);
+  if(o.c.C2)parts.push(`chuyển tài sản ${o.c.C2[0]} trạm đang đứng tên ${h.slice(0,2).map(x=>x[0]).join(', ')} về nhân viên giao khoán`);if(o.c.C5)parts.push(`gom tài sản ${o.c.C5[0]} trạm nhiều người đứng tên về 1 người`);if(o.c.C1)parts.push(`cập nhật tên ${o.c.C1[0]} trạm có NV giao khoán chưa đứng tên tài sản`);if(o.c.C4)parts.push(`lập biên bản bàn giao ${o.c.C4[0]} trạm đã đổi giao khoán`);if(o.c.C3)parts.push(`thu hồi, bàn giao ${o.c.C3[0]} trạm người đứng tên đã rời giao khoán`);if(o.c.C6)parts.push(`bổ sung giao khoán ${o.c.C6[0]} trạm có tài sản`);
+  sol.push(`${o.b} (sai ${nf0.format(rate(o))}%): ${parts.join('; ')}.`)}
+ sol.push(`Phòng Quản lý tài sản gửi danh sách trạm sai cho từng chi nhánh; chi nhánh điền kết quả xử lý, gửi lại trước ngày ${bcV('han')||bcHan()}; Phòng QLTS đối soát lại và báo cáo Tổng Giám đốc.`);
+ const now=new Date(),mm=+S.B.slice(5,7),yy=S.B.slice(0,4);
+ return{Tb,now,mm,yy,def:{so:'',dv:'CÔNG TY NATCOM S.A.',ph:'PHÒNG QUẢN LÝ TÀI SẢN',dd:'Port-au-Prince',kg:'Tổng Giám đốc Công ty Natcom S.A.',ty:`V/v báo cáo kết quả đối soát tài sản trạm và giao khoán trạm tháng ${p2(mm)}/${yy}, giải pháp xử lý`,
+  cc:`Căn cứ số liệu tài sản tại trạm trên hệ thống chốt ngày ${vnd(S.B)}${sa?' và ngày '+vnd(S.A):''};\nCăn cứ danh sách giao khoán trạm cho nhân viên (${D.gk.file||''});`,ev:ev.join('\n'),sol:sol.join('\n'),
+  kn:`Đề nghị Tổng Giám đốc chỉ đạo Giám đốc các chi nhánh rà soát, bàn giao tài sản trạm đúng nhân viên giao khoán, hoàn thành trước ngày ${bcV('han')||bcHan()}.\nĐề nghị khi thay đổi giao khoán trạm, chi nhánh phải làm thủ tục chuyển tài sản trên hệ thống trong vòng 07 ngày.\nPhòng Quản lý tài sản đối soát hằng tháng và báo cáo kết quả tại giao ban.`,nk:'TRƯỞNG PHÒNG QUẢN LÝ TÀI SẢN',nn:'- Như trên;\n- Giám đốc các chi nhánh;\n- Lưu: QLTS.'}}}
+function bcTbl(t){if(!t)return'';if(t.note&&!t.r.length)return`<p style="margin:2px 0 6px"><i>${esc(t.note)}</i></p>`;const L=new Set([0,...(t.lc||[])]);
+ return`${t.u?`<p style="margin:0;text-align:right;font-size:10pt"><i>Đơn vị: ${esc(t.u)}</i></p>`:''}<table border="1" cellspacing="0" cellpadding="3" width="100%" style="border-collapse:collapse;font-size:10.5pt;margin-bottom:4px"><tr>${t.h.map(x=>`<th style="background:#DCE3EE">${esc(x)}</th>`).join('')}</tr>${t.r.map(r=>'<tr>'+r.map((c,j)=>`<td align="${L.has(j)?'left':'right'}">${esc(c)}</td>`).join('')+'</tr>').join('')}${t.t?'<tr style="font-weight:bold">'+t.t.map((c,j)=>`<td align="${j?'right':'left'}">${esc(c)}</td>`).join('')+'</tr>':''}</table>`}
+const NAVY='#1F3864';
+function bcHead(right){const d=new Date();return`<table width="100%" style="border:none;border-collapse:collapse"><tr><td width="46%" align="left" valign="top" style="border:none;font-size:13pt;color:${NAVY};text-align:left"><b>${esc(bcV('dv'))}</b><br><b>${esc(bcV('ph'))}</b><br><i style="color:#000">Số: ${esc(bcV('so'))}</i></td>
+ <td align="center" valign="top" style="border:none;font-size:13pt;text-align:center"><b>CỘNG HOÀ HAITI</b><br><b style="font-size:12pt">Tự do – Bình đẳng – Bác ái</b><br><i>${esc(bcV('dd'))}, ngày ${d.getDate()} tháng ${d.getMonth()+1} năm ${d.getFullYear()}</i></td></tr>
+ ${right?`<tr><td align="center" style="border:none;text-align:center;padding-top:14px;font-size:13pt;color:${NAVY}"><b>PHÊ DUYỆT<br>TỔNG GIÁM ĐỐC</b><br><br><br><br></td><td style="border:none"></td></tr>`:''}</table>`}
+function bcHtml(){const D2=BCD,T=D2.Tb,lines=k=>String(bcV(k)).split('\n').map(x=>x.trim()).filter(Boolean),p=(t,ni)=>`<p style="margin:3px 0;text-align:justify;text-indent:${ni?0:'1cm'}">${t}</p>`,H=(id,t)=>`<p id="bcs-${id}" style="margin:12px 0 4px"><b>${t}</b></p>`,h2=(id,t)=>`<p id="bcs-${id}" style="margin:8px 0 2px"><b>${t}</b></p>`;
+ return`${bcHead(true)}<p align="center" style="margin:10px 0 0;font-size:15pt"><b>TỜ TRÌNH</b></p><p align="center" style="margin:2px 0 10px"><b>${esc(bcV('ty'))}</b></p><p align="center" style="margin:0 0 8px">Kính gửi: ${esc(bcV('kg'))}</p>
+ ${lines('cc').map(x=>p(esc(x))).join('')}${p('Phòng Quản lý tài sản báo cáo kết quả đối soát tài sản trạm và giao khoán trạm tháng '+p2(D2.mm)+'/'+D2.yy+' như sau:')}
+ ${H('i','I. KẾT QUẢ')}${h2('1','1. Tài sản tại trạm theo chi nhánh')}${bcTbl(T.t1)}${h2('2','2. Trạm tăng đột biến (từ '+nf0.format(S.cfg.thr)+' USD), 10 trạm lớn nhất')}${bcTbl(T.t2)}${h2('3','3. Tiến độ thực hiện quyết định theo kế hoạch')}${bcTbl(T.t3)}
+ ${h2('4','4. Đối soát giao khoán trạm theo chi nhánh')}${bcTbl(T.t4)}<p style="margin:0 0 4px;font-size:10pt"><i>${CAUSE.map(c=>c[0]+': '+c[1].split(' (')[0].toLowerCase()).join('; ')}.</i></p>${h2('5','5. Nguyên nhân sai giao khoán')}${bcTbl(T.t5)}${h2('6','6. Người đứng tên tài sản tập trung (từ '+bcThr()+' trạm không được giao)')}${bcTbl(T.t6)}
+ ${H('ii','II. ĐÁNH GIÁ')}${lines('ev').map(x=>p('- '+esc(x))).join('')}${H('iii','III. GIẢI PHÁP VÀ PHÂN CÔNG THỰC HIỆN')}${lines('sol').map(x=>p('- '+esc(x))).join('')}${H('iv','IV. KIẾN NGHỊ, ĐỀ XUẤT')}${lines('kn').map(x=>p('- '+esc(x))).join('')}
+ ${p('Kính trình Tổng Giám đốc xem xét, phê duyệt./.')}<table width="100%" style="border:none;margin-top:10px"><tr><td width="50%" valign="top" style="border:none;font-size:11pt"><b><i>Nơi nhận:</i></b><br>${lines('nn').map(esc).join('<br>')}</td><td align="center" valign="top" style="border:none"><b>${esc(bcV('nk'))}</b><br><br><br><br><br></td></tr></table>`}
+async function bcTt(G,Z){ld('Đang lập tờ trình…');BCD=await bcData(G,Z);ld('');const F=(k,l,ta,r)=>`<label>${l}${ta?`<textarea data-k="${k}" rows="${r||3}">${esc(bcV(k))}</textarea>`:`<input type="text" data-k="${k}" value="${esc(bcV(k))}">`}</label>`;
+ $('#bcB').innerHTML=`<div class="bcbar"><button class="btn p s" type="button" id="bcW">Tải tờ trình (.doc)</button><button class="btn s" type="button" id="bcXl">Tải bảng số liệu (.xlsx)</button><button class="btn s" type="button" id="bcRs">Lập lại toàn bộ lời văn</button><span class="mu">Lời văn tool tự lập theo số liệu kỳ ${vnd(S.B)}; anh sửa ở bên trái, bản Word cập nhật ngay.</span></div>
+ <div class="bcw"><div class="card bcf"><h3>Thông tin tờ trình</h3>${F('so','Số hiệu')}${F('ty','Trích yếu',1,2)}${F('kg','Kính gửi')}${F('cc','Căn cứ (mỗi dòng 1 căn cứ)',1,3)}${F('han','Hạn chi nhánh gửi kết quả')}<h3 style="margin-top:12px">Lời văn</h3>${F('ev','II. Đánh giá (mỗi dòng 1 ý)',1,9)}${F('sol','III. Giải pháp, phân công',1,8)}${F('kn','IV. Kiến nghị',1,4)}${F('nk','Chức danh người ký')}${F('nn','Nơi nhận',1,3)}${F('dv','Đơn vị')}${F('ph','Phòng')}${F('dd','Địa danh')}</div>
+ <div class="bcr"><div class="bct">${[['i','I. Kết quả'],['1','1. Tài sản'],['2','2. Tăng đột biến'],['3','3. Quyết định'],['4','4. Giao khoán'],['5','5. Nguyên nhân'],['6','6. Tập trung'],['ii','II. Đánh giá'],['iii','III. Giải pháp'],['iv','IV. Kiến nghị']].map(([k,t])=>`<button type="button" data-s="${k}">${t}</button>`).join('')}</div><div class="bcv" id="bcv"><div class="bcp nt" id="bcpg"></div></div></div></div>`;
+ const pv=()=>{$('#bcpg').innerHTML=bcHtml()};pv();
+ $$('#bcB [data-k]').forEach(i=>i.oninput=()=>{BCK[i.dataset.k]=i.value;bcSave();pv()});
+ $$('#bcB .bct [data-s]').forEach(b=>b.onclick=()=>{const t=$('#bcs-'+b.dataset.s),v=$('#bcv');if(t)v.scrollTo({top:t.offsetTop-8,behavior:'smooth'})});
+ $('#bcRs').onclick=()=>{if(!confirm('Lập lại toàn bộ lời văn theo số liệu hiện tại? Phần anh đã sửa sẽ mất.'))return;BCK={han:BCK.han,so:BCK.so};bcSave();vBc()};
+ $('#bcW').onclick=()=>bcDoc(bcHtml(),'To_trinh_giao_khoan_'+S.B+'.doc');
+ $('#bcXl').onclick=()=>{const wb=XLSX.utils.book_new();[['t1','Tai san theo CN'],['t2','Tram tang dot bien'],['t3','Quyet dinh'],['t4','Giao khoan theo CN'],['t5','Nguyen nhan'],['t6','Dung ten tap trung']].forEach(([k,n])=>{const t=BCD.Tb[k];if(t&&t.r.length)addSheet(wb,n,[t.h,...t.r,...(t.t?[t.t]:[])])});XLSX.writeFile(wb,'Bao_cao_dieu_hanh_'+S.B+'.xlsx')}}
+function bcDoc(body,name){const h=`<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><style>@page{size:21cm 29.7cm;margin:2cm 2cm 2cm 3cm}body{font-family:'Times New Roman';font-size:13pt}td,th{font-family:'Times New Roman'}</style></head><body>${body}</body></html>`;dl(new Blob(['﻿',h],{type:'application/msword'}),name)}
+async function bcDocBr(b){const sb=D.snaps[S.B],G=gkCalc(sb),Z=gkCause(G),o=Z.B[b];if(!BCD)BCD=await bcData(G,Z);const u=uName(),han=bcV('han');
+ const p=t=>`<p style="margin:3px 0;text-align:justify;text-indent:1cm">${t}</p>`;
+ const t1={h:['Mã','Nguyên nhân','Số trạm','Giá trị','Việc cần làm'],r:CAUSE.filter(c=>o.c[c[0]]).map(c=>[c[0],c[1],o.c[c[0]][0],fmU(o.c[c[0]][1]),c[3]]),u,lc:[1,4]};
+ const t2={h:['STT','Trạm','NN','Giao khoán cho','Đang đứng tên','Giá trị sai'],r:o.rows.sort((a,c)=>a.c<c.c?-1:a.c>c.c?1:c.ov-a.ov).map((r,i)=>[i+1,r.s,r.c,r.gk||'–',r.hs.map(x=>x[0]).join(', '),fmU(r.ov)]),u,lc:[1,2,3,4]};
+ const body=`${bcHead(false)}<p align="center" style="margin:14px 0 0;font-size:15pt"><b>THÔNG BÁO</b></p><p align="center" style="margin:2px 0 10px"><b>V/v rà soát, bàn giao tài sản trạm theo giao khoán – Chi nhánh ${esc(b)}</b></p><p align="center">Kính gửi: Giám đốc Chi nhánh ${esc(b)}</p>
+ ${p(`Căn cứ số liệu tài sản tại trạm trên hệ thống chốt ngày ${vnd(S.B)} và danh sách giao khoán trạm, Phòng Quản lý tài sản thông báo kết quả đối soát tại Chi nhánh ${esc(b)} như sau:`)}
+ ${p(`- Trạm giao khoán: ${o.gk}; đúng nhân viên giao khoán đứng tên tài sản: ${o.ok}; sai: <b>${o.bad} trạm (${nf0.format(rate(o))}%)</b>; giá trị tài sản đứng tên sai: <b>${fmU(o.v)} ${u}</b>${o.c.C6?`; ngoài ra ${o.c.C6[0]} trạm có tài sản nhưng chưa có trong giao khoán`:''}.`)}
+ <p style="margin:8px 0 2px"><b>1. Nguyên nhân và việc cần làm</b></p>${bcTbl(t1)}<p style="margin:8px 0 2px"><b>2. Danh sách trạm cần xử lý</b> (chi tiết và cột điền kết quả trong file Excel gửi kèm)</p>${bcTbl(t2)}
+ <p style="margin:8px 0 2px"><b>3. Yêu cầu</b></p>${p(`Chi nhánh tổ chức rà soát, làm thủ tục chuyển tài sản về đúng nhân viên giao khoán trên hệ thống; điền cột "Kết quả xử lý", "Ngày hoàn thành" trong file Excel và gửi lại Phòng Quản lý tài sản trước ngày <b>${esc(han)}</b>.`)}${p('Trường hợp danh sách giao khoán chưa đúng thực tế, chi nhánh cập nhật lại danh sách giao khoán và gửi kèm.')}
+ <table width="100%" style="border:none;margin-top:12px"><tr><td width="50%" valign="top" style="border:none;font-size:11pt"><b><i>Nơi nhận:</i></b><br>- Như trên;<br>- Tổng Giám đốc (để b/c);<br>- Lưu: QLTS.</td><td align="center" valign="top" style="border:none"><b>${esc(bcV('nk'))}</b><br><br><br><br><br></td></tr></table>`;
+ bcDoc(body,'Thong_bao_giao_khoan_'+b+'_'+S.B+'.doc')}
+
 /* ===== NẠP DỮ LIỆU ===== */
 const IMP={items:[],busy:false,master:null,
  add(files){for(const f of files)this.items.push({f,name:f.name,size:f.size,t:'',st:'wait',L:[],lvl:''});this.render();this.run()},
@@ -1216,7 +1368,7 @@ const dl=(blob,name)=>{const a=document.createElement('a');a.href=URL.createObje
 /* ===== ADMIN ===== */
 function adminLogin(then){openMd(`<h3>Đăng nhập admin</h3><div class="fm"><label>Mật khẩu<input type="password" id="pw" autocomplete="current-password"></label><div class="dn" id="pwE"></div></div><div class="act"><button class="btn" type="button" onclick="closeMd()">Hủy</button><button class="btn p" type="button" id="pwOk">Đăng nhập</button></div>`);
  const go=async()=>{const pw=$('#pw').value;let ok=false;if(ST.mode==='local')ok=sha256(pw)===ADMIN_HASH;else{try{const r=await ST.rpc({op:'login',pw});ok=!!r.ok}catch(e){ok=sha256(pw)===ADMIN_HASH}}
-  if(!ok){$('#pwE').textContent='Sai mật khẩu';return}S.admin=true;S.pw=pw;try{sessionStorage.setItem('tts_pw',pw)}catch(e){}closeMd();$('#admBtn').textContent='Admin: đang đăng nhập';toast('Đã đăng nhập admin');if(then)then();else show(S.tab)};
+  if(!ok){$('#pwE').textContent='Sai mật khẩu';return}S.admin=true;S.pw=pw;try{sessionStorage.setItem('tts_pw',pw)}catch(e){}closeMd();$('#admBtn').textContent='Admin: đang đăng nhập';menu();toast('Đã đăng nhập admin');if(then)then();else show(S.tab)};
  $('#pwOk').onclick=go;$('#pw').onkeydown=e=>{if(e.key==='Enter')go()};setTimeout(()=>$('#pw').focus(),50)}
 /* ===== XUẤT EXCEL ===== */
 const aoaS=a=>XLSX.utils.aoa_to_sheet(TRX?a.map(r=>r.map(c=>typeof c==='string'?trS(c):c)):a);
@@ -1254,10 +1406,10 @@ function xlsDC(dc,plan,X,W,PC){const wb=XLSX.utils.book_new(),u=uName();
 /* ===== KHUNG ===== */
 const TABS=[['Tổng quan',[['dash','Tổng quan','So sánh tài sản trạm giữa hai kỳ chốt',vDash],['trend','Xu hướng','Tài sản tại trạm qua các kỳ',vTrend]]],
  ['Phân tích',[['br','Chi nhánh','Tăng giảm theo chi nhánh',vBr],['st','Trạm','Tăng giảm, đối soát từng trạm',vSt],['wh','Báo cáo kho','Kho nào xuất ra trạm bao nhiêu',vWh],['day','Theo ngày','Xuất và thu hồi từng ngày',vDay],['emp','Nhân viên','Nhân viên giữ nhiều trạm, nhiều tiền',vEmp]]],
- ['Kiểm soát',[['dc','Quyết định (DC)','Tiến độ xuất, thu hồi theo quyết định',vDc],['plan','Kế hoạch','% hoàn thành theo file kế hoạch',vPlan],['norm','Thừa tài sản','So với định mức vật tư',vNorm],['gk','Giao khoán','Người đứng tên tài sản so với giao khoán',vGk],['un','Mã chưa gán','Mã trạm chưa có trong danh sách trạm',vUn]]],
+ ['Kiểm soát',[['dc','Quyết định (DC)','Tiến độ xuất, thu hồi theo quyết định',vDc],['plan','Kế hoạch','% hoàn thành theo file kế hoạch',vPlan],['norm','Thừa tài sản','So với định mức vật tư',vNorm],['gk','Giao khoán','Người đứng tên tài sản so với giao khoán',vGk],['bc','Báo cáo điều hành','Phân tích nguyên nhân, tờ trình Tổng Giám đốc, file gửi chi nhánh (chỉ admin)',vBc],['un','Mã chưa gán','Mã trạm chưa có trong danh sách trạm',vUn]]],
  ['Dữ liệu',[['imp','Nạp dữ liệu','Nạp file, kiểm tra, cài đặt',vImp]]]];
 const TMAP=new Map(TABS.flatMap(([,l])=>l.map(t=>[t[0],t])));
-function menu(){$('#menu').innerHTML=TABS.map(([g,l])=>`<h6>${g}</h6>`+l.map(([k,n])=>`<a href="#${k}" data-tab="${k}" class="${S.tab===k?'on':''}">${n}${k==='plan'&&D.idx.plans.length?`<span class="bd">${D.idx.plans.length}</span>`:''}</a>`).join('')).join('');
+function menu(){$('#menu').innerHTML=TABS.map(([g,l])=>`<h6>${g}</h6>`+l.filter(t=>t[0]!=='bc'||S.admin).map(([k,n])=>`<a href="#${k}" data-tab="${k}" class="${S.tab===k?'on':''}">${n}${k==='plan'&&D.idx.plans.length?`<span class="bd">${D.idx.plans.length}</span>`:''}</a>`).join('')).join('');
  $$('#menu a').forEach(a=>a.onclick=e=>{e.preventDefault();show(a.dataset.tab)})}
 async function show(k){if(!TMAP.has(k))k='dash';S.tab=k;try{history.replaceState(null,'','#'+k)}catch(e){}const t=TMAP.get(k);
  $$('.pg').forEach(p=>p.classList.toggle('on',p.id==='p-'+k));$$('#menu a').forEach(a=>a.classList.toggle('on',a.dataset.tab===k));
@@ -1281,7 +1433,7 @@ async function init(){try{setZoom(+localStorage.getItem('tts_zoom')||1)}catch(e)
  $$('#lang button').forEach(b=>{b.classList.toggle('on',b.dataset.l===S.lang);b.onclick=()=>{try{localStorage.setItem('tts_lang',b.dataset.l)}catch(e){}location.reload()}});
  buildEQ();await ST.init();try{S.pw=sessionStorage.getItem('tts_pw')||''}catch(e){}
  if(S.pw){if(ST.mode==='local')S.admin=sha256(S.pw)===ADMIN_HASH;else S.admin=true}$('#admBtn').textContent=S.admin?'Admin: đang đăng nhập':'Admin';
- $('#admBtn').onclick=()=>{if(S.admin){S.admin=false;S.pw='';try{sessionStorage.removeItem('tts_pw')}catch(e){}$('#admBtn').textContent='Admin';toast('Đã đăng xuất admin');show(S.tab)}else adminLogin()};
+ $('#admBtn').onclick=()=>{if(S.admin){S.admin=false;S.pw='';try{sessionStorage.removeItem('tts_pw')}catch(e){}$('#admBtn').textContent='Admin';toast('Đã đăng xuất admin');if(S.tab==='bc')S.tab='dash';$('#p-bc').innerHTML='';BCD=null;menu();show(S.tab)}else adminLogin()};
  $('#sync').onclick=async()=>{ld('Đang đồng bộ…');await ST.refresh();await reloadAll();toast(ST.mode==='local'?'Bản offline: chưa có link Google Sheet (vào Nạp dữ liệu → Cài đặt)':ST.online?'Đã đồng bộ':'Không kết nối được Google Sheet',3500)};
  $('#fA').onchange=e=>{S.A=e.target.value;show(S.tab)};$('#fB').onchange=e=>{S.B=e.target.value;if(S.A>=S.B)S.A='';pickPeriods();refreshSel();show(S.tab)};$('#fBr').onchange=e=>{S.br=e.target.value;show(S.tab)};
  $$('#unit button').forEach(b=>b.onclick=()=>{S.unit=b.dataset.u;try{localStorage.setItem('tts_unit',S.unit)}catch(e){}refreshSel();show(S.tab)});
