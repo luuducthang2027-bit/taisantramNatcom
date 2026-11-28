@@ -423,11 +423,14 @@ const NB=b=>{b=String(b??'').trim().toUpperCase();return({OUE1:'OUE01',OUE2:'OUE
 const TT='TỔNG TRẠM',RT='Tuyến ';
 const KP=['OUE','ART','NOR','NET','NOT','SUD','GRA','CEN','NIP','SET'],P2={NO:'NOT',SU:'SUD',NR:'NOR',NE:'NET',GR:'GRA',OU:'OUE',NI:'NIP',AR:'ART',CE:'CEN',SE:'SET',O:'OUE'};
 const cl=c=>String(c??'').trim().toUpperCase().replace(/\s+/g,' ').replace(/[.,; ]+$/,'');
-let R={cab:new Map(),site:new Map(),cfg:new Map(),fix:new Map(),pf:new Map(),memo:new Map(),ver:0};
-function buildR(M){R={cab:new Map(),site:new Map(),cfg:new Map(),fix:new Map(),pf:new Map(),memo:new Map(),ver:(R.ver||0)+1};if(!M)return;
+let R={cab:new Map(),site:new Map(),cfg:new Map(),fix:new Map(),pf:new Map(),memo:new Map(),gks:new Set(),ver:0};
+let GKROWS=null;
+function buildR(M){R={cab:new Map(),site:new Map(),cfg:new Map(),fix:new Map(),pf:new Map(),memo:new Map(),gks:new Set(),ver:(R.ver||0)+1};M=M||{};
  for(const[s,c,b]of M.mau||[]){const bb=NB(b);R.cab.set(cl(c),[s,bb]);if(!R.site.has(s))R.site.set(s,bb)}
  for(const[s,b,cabs,cfg]of M.ds||[]){const bb=NB(b);R.site.set(s,bb);R.cab.set(s,[s,bb]);if(cfg)R.cfg.set(s,cfg);for(const c of cabs||[])R.cab.set(cl(c),[s,bb])}
  for(const[raw,s,b]of M.fix||[]){const bb=NB(b);R.fix.set(cl(raw),[s,bb]);if(!R.site.has(s))R.site.set(s,bb)}
+ /* bổ sung từ file giao khoán (cột A/B/E mã trạm, cột F chi nhánh): chỉ dùng cho mã chưa có ở trên */
+ for(const r of GKROWS||[]){const b=NB(r[6]);if(!BRS.includes(b))continue;const s=r[0]||r[1];if(!/^[A-Z]{2,4}\d{3,4}$/.test(s)||/STOCK/i.test(s))continue;if(!R.site.has(s)){R.site.set(s,b);R.gks.add(s)}for(const c of[r[0],r[1],r[2]])if(c&&!R.cab.has(c)&&!R.fix.has(c)&&!(R.site.has(c)&&c!==s))R.cab.set(c,[s,R.site.get(s)])}
  for(const[s,b]of R.site){if(!b||b==='NATCOM')continue;const p=(/^[A-Z]+/.exec(s)||[''])[0],d=R.pf.get(p)||{};d[b]=(d[b]||0)+1;R.pf.set(p,d)}}
 function toSite(t){const m=/^\d?([A-Z]{1,4}?)(\d{2,4})[BR]?$/.exec(t);if(!m)return null;let p=m[1];if(!KP.includes(p))p=P2[p];return p?p+m[2]:null}
 const toks=c=>(c.match(/NAT_TT\d+/g)||[]).concat(c.replace(/NAT_TT\d+/g,' ').split(/[\s\-\/,;_()]+/).filter(Boolean));
@@ -992,7 +995,7 @@ async function vNorm(){const el=$('#p-norm');if(!D.norm){el.innerHTML=emptyState
 /* ===== MÃ CHƯA GÁN ===== */
 async function vUn(){const el=$('#p-un');if(!D.idx.snaps.length&&!D.idx.months.x.length){el.innerHTML=noData();return}
  ld('Đang dò mã…');const L=await unassigned();ld('');const tv=L.reduce((a,x)=>a+x.v,0);
- el.innerHTML=`<div class="al info"><b class="t">Cách bổ sung:</b> 1) Bấm <b>Tải file bổ sung</b>. 2) Điền cột "Chi nhánh (anh điền)" (ART, CEN, NOR, NOT, OUE01, OUE02, OUE03, SUD), sửa cột "Trạm" nếu tool đoán sai. 3) Nạp lại file ở đây hoặc tab Nạp dữ liệu: tool kiểm tra, báo Đạt/Lỗi và tính lại ngay.</div>
+ el.innerHTML=`<div class="al info"><b class="t">Đã tự tra:</b>Mã nào chưa có trong Danh sách trạm, Mau_Tram_Tu thì tool lấy chi nhánh theo file giao khoán (cột F)${D.gk?` – đang dùng ${R.gks.size} trạm từ file giao khoán`:' – chưa nạp file giao khoán'}. Danh sách dưới đây là mã còn lại.</div><div class="al info"><b class="t">Cách bổ sung:</b> 1) Bấm <b>Tải file bổ sung</b>. 2) Điền cột "Chi nhánh (anh điền)" (ART, CEN, NOR, NOT, OUE01, OUE02, OUE03, SUD), sửa cột "Trạm" nếu tool đoán sai. 3) Nạp lại file ở đây hoặc tab Nạp dữ liệu: tool kiểm tra, báo Đạt/Lỗi và tính lại ngay.</div>
  <div class="k">${kpi('Mã chưa gán',L.length,'','w')}${kpi('Giá trị liên quan',C(tv),uName(),'w')}${kpi('Đoán được trạm',L.filter(x=>x.s.endsWith('*')).length,'tool đoán theo ký tự đầu')}</div>
  <div class="card"><h3>Danh sách <span class="r"><button class="btn p s" type="button" id="unD">Tải file bổ sung (.xlsx)</button><label class="btn s" style="display:inline-flex;align-items:center">Nạp file đã điền<input type="file" id="unU" accept=".xlsx,.xls" hidden></label></span></h3>
  ${tbl('un',[{h:'Mã trong file',k:'raw',l:1},{h:'Trạm đoán',k:'s',l:1},{h:'CN gợi ý',k:'b',l:1,f:x=>x.b==='?'?'<span class="mu">chưa rõ</span>':esc(x.b)},{h:'Giá trị',k:'v',f:x=>C(x.v)},{h:'Số dòng',k:'n'},{h:'Xuất hiện ở',l:1,v:x=>[...x.src].join(', '),f:x=>esc([...x.src].join(', '))}],L,{sk:3})}</div>`;
@@ -1137,7 +1140,7 @@ const IMP={items:[],busy:false,master:null,
     else if(it.t==='mau'){const rs=d.rs||(await it.f.text()).split(/\r?\n/).filter(Boolean).map(csvSplit);r=parseMau(rs);this.master.mau=r.data}
     else if(it.t==='sup'){r=parseSup(d.wb,d.sn);const m=new Map((this.master.fix||[]).map(x=>[x[0],x]));for(const x of r.data||[])m.set(x[0],x);this.master.fix=[...m.values()]}
     else if(it.t==='norm')r=parseNorm(d.rs);
-    else if(it.t==='gk')r=parseGK(d.rs);
+    else if(it.t==='gk'){r=parseGK(d.rs);if(r.data){GKROWS=r.data.rows;buildR(this.master)}}
     else if(it.t==='asset')r=await parseAsset(it.f,(p,n)=>{it.prog=`Đang đọc ${nf0.format(p*100)}% · ${n.toLocaleString('vi-VN')} dòng`;this.render()});
     else if(it.t==='x'||it.t==='w')r=parseMov(it.t,d.rs);
     else if(it.t==='plan'){r=parsePlan(d.wb);if(r.data){r.data.name=it.name;it.sug=await planSugg(r.data)}}
@@ -1149,7 +1152,7 @@ const IMP={items:[],busy:false,master:null,
   el.innerHTML=its.map((it,i)=>`<div class="rp"><div><b>${esc(it.name)}</b><span class="mu">${(it.size/1048576).toFixed(1)} MB</span>${it.t?`<span class="tag info">${LBL[it.t]}</span>`:''}${it.st!=='done'?`<span class="tag info">${it.prog||(it.st==='wait'?'Chờ':it.st==='detect'?'Đang nhận dạng…':'Đang đọc…')}</span>`:`<span class="tag ${it.lvl}">${it.lvl==='ok'?'Đạt':it.lvl==='warn'?'Cảnh báo':'Lỗi'}</span>`}${it.saved?'<span class="tag ok">Đã lưu</span>':''}<button class="btn s" type="button" style="margin-left:auto" data-rm="${i}">Bỏ</button></div>
    ${it.L.length?`<ul>${it.L.map(([l,t])=>`<li class="${l}">${t}</li>`).join('')}</ul>`:''}${it.t==='plan'&&it.r&&it.r.data&&!it.saved?planForm(it,i):''}</div>`).join('');
   const can=its.some(i=>i.st==='done'&&i.lvl!=='err'&&!i.saved);$('#impSave').disabled=!can||this.busy;$('#impSave').textContent=S.admin?'Lưu vào dữ liệu':'Đăng nhập admin để lưu';
-  $$('[data-rm]').forEach(b=>b.onclick=()=>{its.splice(+b.dataset.rm,1);if(!its.length)buildR(D.master);this.render()});
+  $$('[data-rm]').forEach(b=>b.onclick=()=>{const x=its.splice(+b.dataset.rm,1)[0];if(x&&x.t==='gk'&&!x.saved){GKROWS=D.gk?D.gk.rows:null;buildR(IMP.master||D.master)}if(!its.length)buildR(D.master);this.render()});
   $$('[data-pdc]').forEach(x=>x.oninput=()=>{its[+x.dataset.pdc].dc=x.value.trim()});
   $$('[data-pdir]').forEach(x=>x.onchange=()=>{const[i,j]=x.dataset.pdir.split(':');its[+i].r.data.items[+j].dir=x.value});
   $$('[data-pex]').forEach(x=>x.onchange=()=>{const[i,j]=x.dataset.pex.split(':');its[+i].r.data.items[+j].ex=!x.checked});
@@ -1171,7 +1174,7 @@ async function impSave(){if(!S.admin){adminLogin(impSave);return}const its=IMP.i
     D.idx.months[it.t].sort();const cv=D.idx.cov[it.t].filter(r=>!(r[0]>=c0&&r[1]<=c1));cv.push([c0,c1,it.name]);D.idx.cov[it.t]=cv.sort((a,b)=>a[0]<b[0]?-1:1);Object.assign(D.names,it.r.names)}
    else if(it.t==='plan'){const fm=/(20\d{2})(\d{2})(\d{2})/.exec(it.name);const from=fm&&+fm[2]>=1&&+fm[2]<=12&&+fm[3]>=1&&+fm[3]<=31?fm[1]+'-'+fm[2]+'-'+fm[3]:'';const p={dc:it.dc,from,name:it.name,sheet:d.sheet,items:d.items,rows:d.rows,upd:Date.now()};await ST.set('plan:'+it.dc,p);D.plans[it.dc]=p;if(!D.idx.plans.includes(it.dc))D.idx.plans.push(it.dc)}
    else if(it.t==='norm'){D.norm={rows:d,upd:Date.now()};await ST.set('norm',D.norm)}
-   else if(it.t==='gk'){D.gk={file:it.name,rows:d.rows,upd:Date.now()};await ST.set('giaokhoan',D.gk);GKC.k=''}
+   else if(it.t==='gk'){D.gk={file:it.name,rows:d.rows,upd:Date.now()};GKROWS=d.rows;await ST.set('giaokhoan',D.gk);GKC.k=''}
    it.saved=true;log.push({u:Date.now(),f:it.name,t:LBL[it.t],l:it.lvl,m:it.L.filter(x=>x[0]!=='info').map(x=>x[1].replace(/<[^>]+>/g,'')).slice(0,3).join(' | ')})}
   if(mchg){D.master=IMP.master;D.master.upd=Date.now();await ST.set('master',D.master)}buildR(D.master);
   await ST.set('names',D.names);await rebuildDC();await rebuildTotals();D.idx.log=(D.idx.log||[]).concat(log).slice(-200);D.idx.upd=Date.now();await ST.set('idx',D.idx);
@@ -1266,7 +1269,7 @@ function refreshSel(){const ss=[...D.idx.snaps].reverse();$('#fB').innerHTML=ss.
  $('#fA').innerHTML='<option value="">(không so sánh)</option>'+ss.filter(s=>s.d<S.B).map(s=>`<option value="${s.d}" ${s.d===S.A?'selected':''}>${vnd(s.d)}</option>`).join('');
  $('#fBr').innerHTML='<option value="">Tất cả chi nhánh</option>'+BRS.map(b=>`<option ${b===S.br?'selected':''}>${b}</option>`).join('');
  $$('#unit button').forEach(b=>b.classList.toggle('on',b.dataset.u===S.unit));menu()}
-async function reloadAll(){D.snaps={};D.mov={};D.plans={};CMP.key='';const c=await ST.get('cfg');if(c)S.cfg={...CFG0,...c};buildEQ();D.idx=Object.assign(IDX0(),await ST.get('idx')||{});D.master=await ST.get('master');buildR(D.master);D.names=await ST.get('names')||{};D.norm=await ST.get('norm');D.gk=await ST.get('giaokhoan');D.gkmap=await ST.get('gkmap')||{};GKC.k='';pickPeriods();refreshSel();svUpd();await show(S.tab)}
+async function reloadAll(){D.snaps={};D.mov={};D.plans={};CMP.key='';const c=await ST.get('cfg');if(c)S.cfg={...CFG0,...c};buildEQ();D.idx=Object.assign(IDX0(),await ST.get('idx')||{});D.master=await ST.get('master');D.gk=await ST.get('giaokhoan');GKROWS=D.gk?D.gk.rows:null;buildR(D.master);D.names=await ST.get('names')||{};D.norm=await ST.get('norm');D.gkmap=await ST.get('gkmap')||{};GKC.k='';pickPeriods();refreshSel();svUpd();await show(S.tab)}
 /* tìm kiếm chung */
 function gSearch(q){q=noAcc(q.trim());if(q.length<2)return[];const o=[];
  for(const s of R.site.keys()){if(s.includes(q))o.push({k:'st:'+s,h:`<span><b>${esc(s)}</b></span><small>Trạm · ${esc(R.site.get(s))}</small>`});if(o.length>=8)break}
